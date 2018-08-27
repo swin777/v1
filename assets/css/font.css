@@ -1,0 +1,24 @@
+@charset "utf-8";
+
+/* 나눔고딕 사용
+*****************************************************************************************************************/
+@import url(nanumgothic.css);
+
+@font-face {
+  font-family: 'Nanum Gothic';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./font/NanumGothic.eot);
+  src: url(./font/NanumGothic.eot?#iefix) format('embedded-opentype'),
+       url(./font/NanumGothic.woff) format('woff'),
+       url(./font/NanumGothic.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Nanum Gothic';
+  font-style: normal;
+  font-weight: 700;
+  src: url(./font/NanumGothicBold.eot);
+  src: url(./font/NanumGothicBold.eot?#iefix) format('embedded-opentype'),
+       url(./font/NanumGothicBold.woff) format('woff'),
+       url(./font/NanumGothicBold.ttf) format('truetype');
+}
