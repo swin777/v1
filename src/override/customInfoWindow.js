@@ -1,9 +1,6 @@
 $class("override.CustomInfoWindow").extend(olleh.maps.overlay.InfoWindow).define({
-    placeSearchResult_dom: $("#placeSearchResult"), //검색결과영역
-    attSearchResult_dom: $("#attSearchResult"), //검색결과영역
-
     _autoPan: function() {
-        var gap = _app['leftResultMgr'].leftGap();
+        var gap = _app.leftResultMgr.leftGap();
         
         var t = this.getMap().getOverlayLayer().layerMgr,
             e = olleh.maps.overlay.BaseInfoWindow,
@@ -33,7 +30,14 @@ $class("override.CustomInfoWindow").extend(olleh.maps.overlay.InfoWindow).define
                 P = E.x > 0,
                 C = E.y > 0;
             v && (c = w ? d.x - e.AUTO_PAN_MARGIN + n : P ? d.x - e.AUTO_PAN_MARGIN + n : d.x + p.width + e.AUTO_PAN_MARGIN - n), y && (g = b ? d.y - e.AUTO_PAN_MARGIN + a : C ? d.y - e.AUTO_PAN_MARGIN + a : a < p.height && _.y > 0 ? d.y - e.AUTO_PAN_MARGIN + a : u.y + e.AUTO_PAN_MARGIN - a);
-            var T = t.getCoordFromLayerPx(new olleh.maps.Point(c-gap, g));
+            var calc_c = c;
+            if(f.x<0){
+                calc_c -= gap;
+            }
+            if(_.x<0){
+                calc_c += 82;
+            }
+            var T = t.getCoordFromLayerPx(new olleh.maps.Point(calc_c, g));
             t.panTo(T)
         }
     }

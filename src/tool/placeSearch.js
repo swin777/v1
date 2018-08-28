@@ -231,7 +231,7 @@ $class('tool.PlaceSearch').define({
             for(var i=0; i<me.placeElement_dom.length; i++){
                 if(me.placeElement_dom[i].id==marker.uuid){
                     $(me.placeElement_dom[i]).attr('class', 'placeElement on');
-                    me.placeList_dom.scrollTop(158*i);
+                    me.placeList_dom.scrollTop(144*i);
                     return;
                 }
             }

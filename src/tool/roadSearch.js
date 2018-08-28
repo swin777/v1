@@ -313,7 +313,7 @@ $class('tool.RoadSearch').define({
             for(var i=0; i<me.attElement_dom.length; i++){
                 if(me.attElement_dom[i].id==marker.uuid){
                     $(me.attElement_dom[i]).attr('class', 'placeElement on');
-                    me.attList_dom.scrollTop(158*i);
+                    me.attList_dom.scrollTop(144*i);
                     return;
                 }
             }

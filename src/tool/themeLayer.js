@@ -65,7 +65,8 @@ $class('tool.ThemeLayer').define({
                 tDom.parent().attr('class', 'on');
                 me.themeCode = tDom.attr('code');
                 me.markerImgUrl = $(tDom.children()[0]).attr('src');
-                me.themeSelectImg.attr('src', me.markerImgUrl);
+                me.themeSelectImg.attr('src', me.markerImgUrl.split("ico_")[0] + "ico_B" + me.markerImgUrl.split("ico_")[1]);
+                me.themeSelectImg.css('border', '2px solid #ef538c');
                 if(_map.getZoom()<11){
                     _map.setZoom(11);
                 }
@@ -75,6 +76,7 @@ $class('tool.ThemeLayer').define({
                 me.themeCode = null;
                 me.markerImgUrl = null;
                 me.themeSelectImg.attr('src', './assets/images/btn_thema.png');
+                me.themeSelectImg.css('border', '');
                 me.mapClear();
             }
         });
