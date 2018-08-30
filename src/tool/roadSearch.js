@@ -70,10 +70,16 @@ $class('tool.RoadSearch').define({
             maxZoom: 14,
             clusterOpts: {
                 iconFn: function (size) {
-                    this.setDisplaySize(true);
-                    var iconInfo = olleh.maps.overlay.MarkerCluster.DEFAULT_ICON_FN(size);
-                    iconInfo.origin = new olleh.maps.Point(51 * (4 - Math.min(Math.floor(size / 20), 4)), -3);
-			        return iconInfo;
+                    // this.setDisplaySize(true);
+                    // var iconInfo = olleh.maps.overlay.MarkerCluster.DEFAULT_ICON_FN(size);
+                    // iconInfo.origin = new olleh.maps.Point(51 * (4 - Math.min(Math.floor(size / 20), 4)), -3);
+                    // return iconInfo;
+                    return {
+                        url: './assets/images/ic_now_plus.png',
+                        size: new olleh.maps.Size(25, 32),
+                        anchor: new olleh.maps.Point(12, 32),
+                        origin: new olleh.maps.Point(-2, 0)
+                    };
                 }
             },
             afterCluster: function (cluster) {
@@ -256,7 +262,8 @@ $class('tool.RoadSearch').define({
             var obj = {id:element.id, order:String.fromCharCode(65+idx), name:element.name,
                     phone:phone, category:element.category.middleName + " > " + element.category.subName,
                     address:element.address.siDo + " " + element.address.siGunGu + " " + element.address.street + " " + element.address.streetNumber,
-                    addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber
+                    addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber,
+                    extension:element.extension
             };
             element.purifyData = obj;
             me.attResult_dom.append(olleh.maps.util.applyTemplate( me.tmpl.placeResultHtml, obj));
@@ -308,7 +315,9 @@ $class('tool.RoadSearch').define({
 
     listElementFocus: function(marker){
         var me = this;
-        me.attElement_dom.attr('class', 'placeElement');
+        if(me.attElement_dom){
+            me.attElement_dom.attr('class', 'placeElement');
+        }
         if(marker){
             for(var i=0; i<me.attElement_dom.length; i++){
                 if(me.attElement_dom[i].id==marker.uuid){
@@ -341,7 +350,7 @@ $class('tool.RoadSearch').define({
             });
             me.currMakers.push(marker);
             me.clusterer.add(marker);
-            _app.themeLayer.selectRelease();
+            //_app.themeLayer.selectRelease();
 
             if(idx==0){
                 bound = new olleh.maps.Bounds(point, point);
@@ -407,6 +416,14 @@ $class('tool.RoadSearch').define({
                 me.listElementFocus(null);
                 marker.setZIndex(marker.orgZIndex);
             }
+
+            $(".btn_geolist .btn_detail").click(function(){
+                if(marker.purifyData.extension && marker.purifyData.extension.homepageURL){
+                    window.open(marker.purifyData.extension.homepageURL);
+                }else{
+                    alert("상세정보가 없습니다.")
+                }
+            });
 
             $(".btn_geolist .ico_start").click(function(){
                 me.infoWindow.close();
@@ -482,6 +499,7 @@ $class('tool.RoadSearch').define({
         if(!noInfoWindow){
             me.infoWindowShow(marker, marker.purifyData, true, true, false, me.tmpl.routeInfoWindow);
         }
+        me.clusterer.add(marker);
     },
 
     setEnd: function(marker, noInfoWindow){
@@ -491,6 +509,7 @@ $class('tool.RoadSearch').define({
         if(!noInfoWindow){
             me.infoWindowShow(marker, marker.purifyData, true, true, false, me.tmpl.routeInfoWindow);
         }
+        me.clusterer.add(marker);
     },
 
     setWp: function(marker, noInfoWindow){

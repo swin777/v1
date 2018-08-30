@@ -186,7 +186,8 @@ $class('tool.ThemeLayer').define({
             var obj = {id:element.id, name:element.name, imgUrl:me.markerImgUrl, typeImgUrl:me.markerImgUrl,
                     phone:phone, category:element.category.middleName + " > " + element.category.subName,
                     address:element.address.siDo + " " + element.address.siGunGu + " " + element.address.street + " " + element.address.streetNumber,
-                    addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber
+                    addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber,
+                    extension:element.extension
             };
             marker.purifyData = obj;
             marker.onEvent('click', function(e) {
@@ -195,8 +196,8 @@ $class('tool.ThemeLayer').define({
             me.markerArr.push(marker);
             me.clusterer.add(marker);
         });
-        _app.placeSearch.release();
-        _app.roadSearch.release();
+        //_app.placeSearch.release();
+        //_app.roadSearch.release();
         me.clusterer.setMap(_map);
     },
 
@@ -232,6 +233,14 @@ $class('tool.ThemeLayer').define({
                     me.searchCall(0);
                 }else{
                     me.idleEvent = true;
+                }
+            });
+
+            $(".btn_geolist .btn_detail").click(function(){
+                if(marker.purifyData.extension && marker.purifyData.extension.homepageURL){
+                    window.open(marker.purifyData.extension.homepageURL);
+                }else{
+                    alert("상세정보가 없습니다.")
                 }
             });
     

@@ -1,30 +1,30 @@
 const path = require('path');
-const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-const dirname = 'E:\\works\\웹지도서비스\\product\\v1';
+const timestamp = +new Date();
 
 module.exports = {
     mode: 'production',
-    entry: './index.js',
+    entry: ['babel-polyfill', './index.js'],
     output: {
-        path: path.resolve(dirname, 'dist'),
-        publicPath: './dist/', // 배포: './dist/' 개발: '/dist/'
-        filename: 'bundle.js'
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: './dist/',
+        filename: 'bundle.'+timestamp+'.js'
     },
     plugins: [
-        new UglifyJSPlugin(),
+        new UglifyJSPlugin()
     ],
     module: {
         rules: [
             {
                 test: /\.js$/,
-                include: path.join(dirname),
+                include: path.join(__dirname),
                 exclude: /(node_modules)|(dist)/,
                 use: {
                     loader: 'babel-loader',
-                    options: {
-                        presets: ['env']
-                    }
+                    // query: {
+                    //     plugins: ['transform-runtime'],
+                    //     presets: ['es2015']
+                    // }
                 }
             }
         ]

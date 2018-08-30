@@ -30,13 +30,6 @@ $class('util.AutoComplate').define({
                         me.autoComplateTimer = null;
                     }
                 });
-                me.inputKeyWord.parent().find('.btn_auto_toggle').click(function(){
-                    if(me.autoComplateArea.css('display')=='block'){
-                        me.close();
-                    }else{
-                        me.open();
-                    }
-                })
                 me.inputKeyWord.parent().find('.autoToggle').click(function(){
                     if(me.mode){
                         me.mode = false;
@@ -48,8 +41,15 @@ $class('util.AutoComplate').define({
                         $(this).text('자동완성기능 끄기');
                     }
                 })
+
                 me.js_open = me.inputKeyWord.parent().find('.js_open');
                 me.js_close = me.inputKeyWord.parent().find('.js_close');
+                me.js_open.click(function(){
+                    me.open();
+                })
+                me.js_close.click(function(){
+                    me.close();
+                })
             }
         );
     },

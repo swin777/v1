@@ -20,6 +20,7 @@ $class('tool.RouteSearch').define({
     polyineArr:[], //marker를 제외한 tooltip, polyline
     routeByPoiResult:null, 
     routeByPoiArr:[],
+    executeMode:false,
 
     RouteSearch: function(attList_dom, routeList_dom, attWrap_dom, routeWrap_dom){
         var me = this;
@@ -45,6 +46,10 @@ $class('tool.RouteSearch').define({
 
         me.all_a_dom = me.routeWrap_dom.find('a');
         me.routeWrap_dom.find('a').click(function(){
+            if(me.executeMode){
+                alert("길찾기 중입니다.");
+                return;
+            }
             me.all_a_dom.attr('class', '');
             $(this).attr('class', 'on');
             me.searchCall();
@@ -110,6 +115,7 @@ $class('tool.RouteSearch').define({
         me.wpOrder();
         me.mapClear();
         var param = me.makeSendParam();
+        me.executeMode = true;
         $.ajax({
             url: _app.geomasterUrl+"/lbs/rp?key="+_app.ollehApiKey+param,
             type: "GET",
@@ -125,9 +131,11 @@ $class('tool.RouteSearch').define({
                 me.summeyDisplay();
                 me.listDisplay();
                 me.mapDisplay();
+                me.executeMode = false;
             },
             error: function(err){
-                alert("길찾기 실패하였습니다.")
+                alert("길찾기 실패하였습니다.");
+                me.executeMode = false;
             }
         });
     },
@@ -627,8 +635,8 @@ $class('tool.RouteSearch').define({
     },
 
     timeFormat: function(val){
-        if(val<60){
-            return "약 " + val + "분";
+        if(val<61){
+            return "약 " + Math.round(val) + "분";
         }else{
             var hour = Math.floor(val/60);
             var min = Math.round((val/60 - hour)*60);

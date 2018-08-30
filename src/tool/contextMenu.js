@@ -19,6 +19,12 @@ $class('tool.ContextMenu').define({
             me.layer_which.hide();
         });
 
+        $(".layer_which .ico_search").click(function(){
+            _map.setCenter(me.coord);
+            _app.placeSearch.searchCall();
+            me.layer_which.hide();
+        });
+
         $(".layer_which .ico_start").click(function(){
             me.reverseGeocode('start');
             me.layer_which.hide();

@@ -341,9 +341,10 @@
 	/*gis_map_navigation_after.html �ڵ��� ����Ʈ*/
 	.txt_nav{border-bottom: 1px solid #c0c0c0; padding-bottom: 10px; position: relative;}
 	.txt_nav p{display: inline-block;}
-	.txt_nav > a {display: inline-block;padding:0 13px;border-left:1px solid #c0c0c0;color:#324e69;font-size:11px;text-align:center;}
+	.txt_nav > a {display: inline-block;padding:0 13px;border-left:1px solid #c0c0c0;color:#324e69;font-size:11px;text-align:center;margin:-3px;}
 	.txt_nav > a:first-child {border-left:none;}
-	.txt_nav > a.on {padding:0 10px 0 0;margin-right:10px;border-bottom:1px solid #44b1c6;font-weight:700;background:url(../images/bg_tabOn.png)  no-repeat right center;}
+	.txt_nav > a.on {border-bottom:1px solid #44b1c6;font-weight:700;}
+	/*.txt_nav > a.on {padding:0 10px 0 0;margin-right:10px;border-bottom:1px solid #44b1c6;font-weight:700;background:url(../images/bg_tabOn.png)  no-repeat right center;}*/
 	.wrap_nav .check_list .radio_set{padding-top: 5px;}
 	.wrap_nav .check_list{margin-bottom: 0;}
 	.search_num{display: inline-block; position: absolute; right: 0;}
