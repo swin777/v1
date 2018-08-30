@@ -42,6 +42,20 @@ $class('util.AutoComplate').define({
                     }
                 })
 
+                me.inputKeyWord.keypress(function (e) {
+                    if (e.which == 13) {
+                        if(me.callbackInfo){
+                            if(me.callbackInfo.thisArg){
+                                me.callbackInfo.fun.apply(me.callbackInfo.thisArg, [me.inputKeyWord.val(), me.callbackInfo.etcArg]);
+                            }else{
+                                me.callbackInfo.fun(me.inputKeyWord.val(), me.callbackInfo.etcArg);
+                            }
+                        }
+                        me.inputKeyWord.blur();
+                        me.close();
+                    }
+                });
+
                 me.js_open = me.inputKeyWord.parent().find('.js_open');
                 me.js_close = me.inputKeyWord.parent().find('.js_close');
                 me.js_open.click(function(){

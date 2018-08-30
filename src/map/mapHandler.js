@@ -8,23 +8,18 @@ $class('map.MapHandler').define({
             zoomControlOptions: {
                   top: 10,
                   right: 15
-                },
+            },
             panControl: false,
             scaleControl: true,
             scaleControlOptions:{
                     left: 7, // 기본 14
                     bottom:5
-                },
+            },
             copyrightControl: true,
-            copyrightControlOptions:{
-    
-                     bottom:9
-                },
+            copyrightControlOptions:{bottom:9},
             mapTypeControl: false,
             measureControl: true,
-            measureControlOptions:{
-                     right:15
-            }
+            measureControlOptions:{right:15}
         });
     
         var coordCenter = new olleh.maps.UTMK(965898.9999999991, 1928928.9999999197); //958386.063532902, 1941447.5761742294
