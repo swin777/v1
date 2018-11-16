@@ -1,9 +1,12 @@
-<div style="width:280px;padding:16px 15px 10px;z-index:100;background:#fff;border:1px solid #8d8d8d;">
-    <div class="popH">
-        <strong><a href=""><img src="#{imgUrl}" /></a></strong>
-        <a href="#" class="btn_lyclose" ><img src="./assets/images/btn_layer_close.png" alt="닫기"/></a>
+<div style="width:280px;padding:16px 15px 10px;z-index:100;background:#fff;border:1px solid #8d8d8d; font-family:Nanum Gothic;">
+    <div class="popH" style="padding-bottom: 4px;">
+        <strong><a href="javascript:void(0)"><img src="#{imgUrl}" /></a></strong>
+        <a href="javascript:void(0)" class="btn_lyclose" ><img src="./assets/images/btn_layer_close.png" alt="닫기"/></a>
     </div>
-    <div class="popC">
-        #{ment}
-    </div>
+    <li  class="routeElement" style="cursor:pointer;list-style-type:none;padding-top:6px">
+            <span class="tit_road">
+                <img style="display:#{turnByturnImgVisible}" src="./assets/images/turnByturn/#{turnByturnImg}" >
+            </span>
+            <p class="txt_road">#{ment}</p>
+        </li>
 </div>

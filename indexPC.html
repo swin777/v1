@@ -1,0 +1,555 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html class="no-js">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="format-detection" content="telephone=no">
+<head>
+    <meta charset="UTF-8">
+    <title>Geo master</title>
+    <link rel="icon" href="./assets/images/kt_favicon.ico">
+    <link href="./assets/css/style.css?v=9" rel="stylesheet" media="screen">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!--script type="text/javascript" src="https://gis.kt.com/maps/v3.0/sdk.js?key=df21e533e679ef05f19ab3e318085f629da782757fdc5c65d31bb6815687f18a61711750"></script-->
+    <script type="text/javascript" src="https://api.ktgis.com:10083/v3/olleh/mapAPI.js?key=ODEwMEQ3ODk6VDc3RkM5N0I2OEM2RDA="></script>
+    <!-- <script type="text/javascript" src="https://gis.kt.com/maps/v3.0/msdk.js?key=8b333dfa89354771160af804485f7e9f027431feaa8b42d465e6dae3d2d1e2910306f94f"></script> -->
+    <script type="text/javascript" src="./dist/bundle.js"></script>
+</head>
+<body>
+    <div id="wrap">
+        <div class="bg_black"></div>
+        <div id="aside">
+            <div id="cbp-spmenu-s1" class="cbp-spmenu-left">
+                <div id="panel">
+                    <h2 class="blind">검색부분</h2>
+                    <button class="btn_close"></button>
+                    <ul class="nav_lst">
+                        <li class="on">
+                            <a href="javascript:void(0)" class="ico_sh01">검색</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="ico_sh02">길찾기</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="ico_sh03">버스
+								<span class="ico_comming">(coming soon)</span>
+							</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="ico_sh04">지하철
+								<span class="ico_comming">(coming soon)</span>
+							</a>
+                        </li>
+                    </ul>
+                    <div class="box_snb">
+                        <p class="txt_blit"> 공지사항</p>
+                        <p class="txt_blit"> 문의하기</p>
+                        <Br />
+                        <p class="txt_blit"> 지도범례</p>
+                        <p class="txt_blit"> 지도 open API</p>
+                        <p class="txt_blit"> KT geo master 소개</p>
+                    </div>
+
+                    <div class="btn_snb">
+                        <a href="" class="banner_navi">
+                            <span>당신이 찾는 모든 길 안내</span>
+                            <strong>one navi</strong>
+                        </a>
+                        <div>
+                            <a href="" class="banner_google">구글 play 스토어 바로가기</a>
+                            <a href="" class="banner_apple">애플 앱스토어 바로가기</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- aside_footer -->
+                <div id="aside_footer">
+                    <h3 class="blind">본문 마지막 참조링크들</h3>
+                    <ul class="afooter_lst">
+                        <li>
+                            <a href="">Geo master</a>
+                        </li>
+                        <li>
+                            <a href="">고객센터</a>
+                        </li>
+                        <li>
+                            <a href="">문의하기</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="geo_box_h">
+            <div class="wrap_Gsearch" id="geo_box01">
+                <button class="btn_all btn_d">전체보기</button>
+                <span class="seach_inp">
+					<input id="placeKeyword" type="text" title="검색어 입력해주세요" placeholder="검색어 입력해주세요" class="input_act"/>
+					<span class="btn_search">
+						<img src="./assets/images/btn_search_b.gif" alt="검색"  draggable="false">
+					</span>
+                </span>
+                <button class="btn_road">길찾기 전환 버튼</button>
+            </div>
+            <!-- 추가되는 검색창 1-->
+            <div class="wrap_Gsearch" id="geo_box02">
+                <div>
+                    <!-- <button class="btn_prev btn_d">뒤로가기</button> -->
+                    <button class="btn_all btn_d">전체보기</button>
+                    <span class="seach_inp">
+						<input id="startKeyword" type="text" title="출발지가 어디신가요?" placeholder="출발지가 어디신가요?" class="input_act" />
+						<span class="btn_search start">
+							<img src="./assets/images/btn_search_g.png" alt="검색"  draggable="false">
+						</span>
+                    </span>
+                    <button class="btn_Gsearch">검색화면 전환 버튼</button>
+                </div>
+                <div class="wayPointArea">
+                    <div class="wrap_inpAdd" id="wp1">
+                        <button class="btn_via"></button>
+                        <span class="seach_inp">
+							<input id="wp1Keyword" type="text" title="경유지가 어디신가요?" placeholder="경유지가 어디신가요?" class="input_act" />
+							<span class="btn_search wp1">
+								<img src="./assets/images/btn_search_g.png" alt="검색"  draggable="false">
+							</span>
+                        </span>
+                        <button class="btn_gclose"></button>
+                    </div>
+                    <div class="wrap_inpAdd" id="wp2">
+                        <button class="btn_via"></button>
+                        <span class="seach_inp">
+							<input id="wp2Keyword" type="text" title="경유지가 어디신가요?" placeholder="경유지가 어디신가요?" class="input_act" />
+							<span class="btn_search wp2">
+								<img src="./assets/images/btn_search_g.png" alt="검색"  draggable="false">
+							</span>
+                        </span>
+                        <button class="btn_gclose"></button>
+                    </div>
+                    <div class="wrap_inpAdd" id="wp3">
+                        <button class="btn_via"></button>
+                        <span class="seach_inp">
+							<input id="wp3Keyword" type="text" title="경유지가 어디신가요?" placeholder="경유지가 어디신가요?" class="input_act" />
+							<span class="btn_search wp3">
+								<img src="./assets/images/btn_search_g.png" alt="검색"  draggable="false">
+							</span>
+                        </span>
+                        <button class="btn_gclose"></button>
+                    </div>
+                </div>
+                <div class="wrap_inpClose">
+                    <button class="btn_via">경유</button>
+                    <span class="seach_inp">
+						<input id="endKeyword" type="text" title="도착지가 어디신가요?" placeholder="도착지가 어디신가요?" class="input_act" />
+						<span class="btn_search end">
+							<img src="./assets/images/btn_search_g.png" alt="검색"  draggable="false">
+						</span>
+                    </span>
+                    <button class="btn_gadd"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색창 -->
+        <div class="geo_box">
+            <div id="placeSearchResult" class="wrap_searchboxLy">
+                <!-- 장소검색결과  상세 페이지 -->
+                <div class="wrap_searchbox">
+                    <button class="btn_open03"></button>
+                    <ul class="tab_panel">
+                        <li id="p_all" class="placeTab on">
+                            <a href="javascript:void(0)">전체</a>
+                        </li>
+                        <li id="p_place" class="placeTab">
+                            <a href="javascript:void(0)">장소</a>
+                        </li>
+                        <li id="p_address" class="placeTab">
+                            <a href="javascript:void(0)">주소</a>
+                        </li>
+                    </ul>
+
+                    <div class="pd10">
+                        <div class="txt_search mb0">
+                            <p>
+                                <strong id="placeKeywordStr" class="point01"></strong> 검색결과(<strong id="placeCnt" class="point01"></strong>)
+                            </p>
+                            <a href="javascript:void(0)" id="placeClear" class="btn_clear">모두지우기</a>
+                        </div>
+                        <div id="addressTitle" class="search_Box mt05">
+                            <span class="title">주소<strong id="addressCnt" class="point01"></strong></span>
+                        </div>
+                        <div id="addressList">
+                            <ul id="addressResult" class="list_address">
+                            </ul>
+                        </div>
+                        <div id="placeTitle" class="search_Box mt05">
+                            <span class="title">장소<strong id="onlyplaceCnt" class="point01"></strong></span>
+                            <span>
+								<a href="javascript:void(0)" id="placeOrder1" class="on">관련도순</a>
+								<a href="javascript:void(0)" id="placeOrder2">거리순</a>
+							</span>
+                        </div>
+                        <div id="placeList" class="result_list">
+                            <ul id="placeResult" class="list_address">
+                            </ul>
+                            <div id="placePage" class="wrap_paging">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- //버스 검색레이어 -->
+        <!--  출발지/도착지 검색시 검색 결과  -->
+
+        <div class="geo_box">
+            <div id="attSearchResult" class="wrap_searchboxLy">
+                <div class="wrap_searchbox">
+                    <button class="btn_open03"></button>
+                    <ul class="tab_box2">
+                        <li class="">
+                            <a href="javascript:void(0)" id="wpAddBtn">경로추가</a>
+                        </li>
+                        <li class="">
+                            <a href="javascript:void(0)" id="routeClearBtn">전체지우기</a>
+                        </li>
+    					<li class="">
+                            <a href="javascript:void(0)" id="routeSerchBtn">길찾기</a>
+                        </li>
+                    </ul>
+                    <!--
+                    <ul class="tab_box">
+                        <li class="on">
+                            <a href="javascript:void(0)">자동차</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)">대중교통
+								<br />
+								<span>(coming soon)</span>
+							</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)">도보
+								<br />
+								<span>(coming soon)</span>
+							</a>
+                        </li>
+                    </ul>
+                    -->
+                    <div class="wrap_search" id="attWrap">
+                        <div class="txt_search mb0">
+                            <p>
+                                <strong id="attKeywordStr" class="point01"></strong> 검색결과(<strong id="attCnt" class="point01"></strong>)
+                            </p>
+                            <a href="javascript:void(0)" id="roadClear" class="btn_clear">모두지우기</a>
+                        </div>
+                        <div class="search_Box mt05">
+                            <span>
+								<a href="javascript:void(0)" id="placeOrder1" class="on">관련도순</a>
+								<a href="javascript:void(0)" id="placeOrder2">거리순</a>
+								<span>&nbsp;&nbsp;</span>
+                            <!-- <button class="greenBtn">길찾기</button> -->
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="wrap_search" id="routeWrap" style="display: none">
+                        <div class="txt_nav ac">
+                            <a href="javascript:void(0)" class="on" val="6">실시간 빠른길</a>
+                            <a href="javascript:void(0)" val="3">최적</a>
+                            <a href="javascript:void(0)" val="0">최단</a>
+                            <a href="javascript:void(0)" val="2">무료</a>
+                            <a href="javascript:void(0)" val="1">고속도로</a>
+                        </div>
+                        <div class="box_sky">
+                            <strong>실시간 교통 정보 데이터를 반영한 결과입니다.</strong>
+                            <div class="body_sky">
+                                <ul>
+                                    <li><span>총거리     </span><strong id="total_dist"></strong></li>
+                                    <li><span>소요시간</span><strong id="total_time"></strong></li>
+                                </ul>
+                                <button id="routeByPoiBtn">경로내 POI검색</button>
+                                <button id="routeByPoiClearBtn">경로내 POI지우기</button>
+                                <button id="allBoundBtn">전체경로</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="attList" class="result_list2">
+                        <ul id="attResult" class="list_address">
+                        </ul>
+                        <div id="attPage" class="wrap_paging">
+                        </div>
+                    </div>
+                    <div id="routeList" class="result_list3" style="display:none;">
+                        <!-- <ul id="routeResult" class="list_address">
+						</ul> -->
+                        <ol id="routeResult" class="list_road">
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!--  //검색창 -->
+    <div id="container">
+        <div id="content">
+            <!-- <h1>
+				<a href="javascript:void(0)">
+					<img src="./assets/images/tit_logo.png" alt="Geo master" />
+				</a>
+			</h1> -->
+            <div class="layer_which">
+                <ul>
+                    <li>
+                        <a href="javascript:void(0)" class="ico_address">이 위치 주소보기</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" class="ico_search line-through">여기에서 검색</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li>
+                        <a href="javascript:void(0)" class="ico_start">출발지로 지정</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" class="ico_via">경유지로 지정</a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)" class="ico_end">도착지로 지정</a>
+                    </li>
+                </ul>
+                <div>
+                    <button class="expand">확대</button>
+                    <button class="cancel">취소</button>
+                </div>
+                <a href="javascript:void(0)" class="btn_rwhich">
+                    <img src="./assets/images/btn_layer_close.png" alt="닫기"  draggable="false"/>
+                </a>
+            </div>
+            <!-- //확대/축소 레이어  -->
+            <div id="map_area">
+                <div id="geo_map">
+                    <div id="ollehMap"></div>
+                    <div class="wrap_dig">
+                        <div>
+                            <a href="javascript:void(0)" class="btn_option">
+                                <img src="./assets/images/btn_option.png" alt="지도 옵션"  draggable="false"/>
+                            </a>
+                            <div class="layer_rOpen">
+                                <ul>
+                                    <li>
+                                        <label>
+                                            <input type="checkbox" class="mapType1" mapType="ROADMAP" checked/>
+                                            <span class="ico_rOpen01">일반지도</span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label>
+                                            <input type="checkbox" class="mapType1" mapType="SATELLITE" />
+                                            <span class="ico_rOpen02">항공영상</span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label>
+                                            <input type="checkbox" class="mapType1" mapType="HYBRID" />
+                                            <span class="ico_rOpen02">하이브리드</span>
+                                        </label>
+                                    </li>
+                                </ul>
+                                <ul>
+                                    <li>
+                                        <label>
+                                            <input id="trafficInfo" type="checkbox" class="mapType2" />
+                                            <span class="ico_rOpen04">교통정보</span>
+                                        </label>
+                                    </li>
+                                    <!-- <li>
+										<label>
+											<input type="checkbox" class="mapType2"/>
+											<span class="ico_rOpen05">대중교통</span>
+										</label>
+									</li> -->
+                                    <li>
+                                        <label>
+                                            <input id="cadastral" type="checkbox" class="mapType2" />
+                                            <span class="ico_rOpen06">지적편집도</span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label>
+                                            <input id="contour" type="checkbox" class="mapType2" />
+                                            <span class="ico_rOpen03">지형도</span>
+                                        </label>
+                                    </li>
+                                    <!-- <li>
+										<label>
+											<input type="checkbox" class="mapType2"/>
+											<span class="ico_rOpen07">날씨(soon)</span>
+										</label>
+									</li> -->
+                                </ul>
+                                <a href="javascript:void(0)" class="btn_rOpen">
+                                    <img src="./assets/images/btn_layer_close.png" alt="닫기"  draggable="false"/>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt15">
+                            <a href="javascript:void(0)" class="btn_present">
+                                <img src="./assets/images/btn_position.png" alt="현재위치"  draggable="false"/>
+                            </a>
+                        </div>
+
+                        <div class="mt10">
+                            <a href="javascript:void(0)" class="btn_theme">
+                                <img id="themeSelectImg" src="./assets/images/btn_thema.png" alt="테마" style="width:36px;height:36px;"  draggable="false"/>
+                            </a>
+                            <!-- 주변 레이어 -->
+                            <div class="wrap_facilty">
+                                <a href="javascript:void(0)" class="close_facilty">
+                                    <img src="./assets/images/btn_layer_close.png" alt="닫기"  draggable="false"/>
+                                </a>
+                                <div class="header_facilty">
+                                    <span>
+										<img src="./assets/images/ico_weather01.png" alt="태양"  draggable="false"/>
+										<strong>24.8</strong>
+									</span>
+                                    <!-- 
+										ico_weather01.png 태양
+										ico_weather02.png 구름 쪼금
+										ico_weather03.png 구름 많이
+										ico_weather04.png 태양 +구름
+										ico_weather05.png 비
+										ico_weather06.png 태양 + 비
+ 										ico_weather07.png 구름+천둥번개
+										ico_weather08.png 구름+천둥번개 + 비
+										ico_weather09.png 구름 + 비
+										ico_weather10.png 비
+										ico_weather11.png 눈
+										ico_weather12.png 구름 + 눈
+										ico_weather13.png 태양 + 구름 + 눈
+										ico_weather14.png 달 + 구름 + 눈
+										ico_weather15.png 안개
+										ico_weather16.png 바람										
+									-->
+                                </div>
+                                <div class="body_facilty">
+                                    <ul>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_001">
+                                                <img src="./assets/images/ico_gas.jpg" alt="주유소"  draggable="false"/>
+                                                <span>주유소</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_002">
+                                                <img src="./assets/images/ico_lpg.jpg" alt="LPG"  draggable="false"/>
+                                                <span>LPG</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_003">
+                                                <img src="./assets/images/ico_parking.jpg" alt="주차장"  draggable="false"/>
+                                                <span>주차장</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_004">
+                                                <img src="./assets/images/ico_clean.jpg" alt="세차장"  draggable="false"/>
+                                                <span>세차장</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <ul>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_005">
+                                                <img src="./assets/images/ico_restaurant.jpg" alt="음식점"  draggable="false"/>
+                                                <span>음식점</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_006">
+                                                <img src="./assets/images/ico_hotel.jpg" alt="숙박"  draggable="false"/>
+                                                <span>숙박</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_007">
+                                                <img src="./assets/images/ico_bank.jpg" alt="은행/ATM"  draggable="false"/>
+                                                <span>은행/ATM</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_008">
+                                                <img src="./assets/images/ico_mart.jpg" alt="대형마트"  draggable="false"/>
+                                                <span>대형마트</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <ul>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_009">
+                                                <img src="./assets/images/ico_gro.jpg" alt="편의점"  draggable="false"/>
+                                                <span>편의점</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_010">
+                                                <img src="./assets/images/ico_hospital.jpg" alt="병원"  draggable="false"/>
+                                                <span>병원</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_011">
+                                                <img src="./assets/images/ico_pham.jpg" alt="약국"  draggable="false"/>
+                                                <span>약국</span>
+                                            </a>
+                                        </li>
+                                        <li class="off">
+                                            <a href="javascript:void(0)" class="themeByn" code="TM_012">
+                                                <img src="./assets/images/ico_toilet.jpg" alt="화장실"  draggable="false"/>
+                                                <span>화장실</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!--// 주변 레이어 -->
+                            <div class="themeMsg">
+                                <p>현재의 지도 배율에서는 테마정보를 볼 수 없습니다.
+                                    <br><em>지도를 좀 더 높은 배율</em>로 확대하면
+                                    <br>테마정보를보실 수 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- //해상도 -->
+                    <!--   텍스트 -->
+                    <!--
+                    <div class="geo_intro">
+                        <a href="javascript:void(0)">KT geo master 소개</a>
+                        <a href="javascript:void(0)">공지사항</a>
+                    </div>
+                    -->
+                    <!-- 텍스트 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="addressMsg">
+        <p class="parcelAddress"></p><br/>
+        <p class="roadAddress"></p>
+    </div>
+    <span class="routeByPoiDiv">
+        <input id="routeByPoiInput" type="text" title="경로내 검색할 검색어를 입력해주세요" placeholder="경로내 검색할 검색어를 입력해주세요" class="input_act">
+        <span class="btn_search">
+            <img id="routeByPoiExe" src="./assets/images/btn_search_b.gif" style="cursor:pointer" alt="검색"  draggable="false">
+            <img id="routeByPoiClose" src="./assets/images/btn_close.gif" style="width:17px;height:18px;cursor:pointer" alt="닫기"  draggable="false">
+        </span>
+    </span>
+
+    <div class="routeIngMsg">
+        <p><em>길찾기 실행 중입니다.</em></p>
+    </div>
+</body>
+</html>

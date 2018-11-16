@@ -3,6 +3,7 @@ $class('tool.ContextMenu').define({
     addressMsg:$(".addressMsg"),
     parcelAddress:$(".addressMsg .parcelAddress"),
     roadAddress:$(".addressMsg .roadAddress"),
+    searchEle : $(".layer_which .ico_search"),
     coord:null,
     pageX:null,
     pageY:null,
@@ -21,7 +22,9 @@ $class('tool.ContextMenu').define({
 
         $(".layer_which .ico_search").click(function(){
             _map.setCenter(me.coord);
-            _app.placeSearch.searchCall();
+            if(me.searchEle.attr('class')!='ico_search line-through'){
+                _app.placeSearch.searchCall(true);
+            }
             me.layer_which.hide();
         });
 
@@ -37,6 +40,7 @@ $class('tool.ContextMenu').define({
 
         $(".layer_which .ico_end").click(function(){
             me.reverseGeocode('end');
+            me.layer_which.hide();
             
         });
 
@@ -52,11 +56,17 @@ $class('tool.ContextMenu').define({
             me.layer_which.hide();
         });
 
-        document.addEventListener("contextmenu", function(e) {
+        $(document).bind("contextmenu", function(event) { 
             event.preventDefault();
-          });
+        });
 
         _map.onEvent('rightclick', function(event) {
+            if(_app.routeSearch.routeIngMsg.css('display')=='block'){
+                return false;
+            }
+            if(event.targetDOM.id != 'layer_container'){
+                return;
+            }
             me.pageX = event.pageXY.x;
             me.pageY = event.pageXY.y;
             me.coord = event.getCoord();
@@ -65,6 +75,16 @@ $class('tool.ContextMenu').define({
             me.layer_which.show();
             return false;
         });
+
+        _map.onEvent('idle', function() {
+            me.layer_which.hide();
+        });
+
+        _map.onEvent('click', function() {
+            me.layer_which.hide();
+        });
+
+        _app.eventbusjs.addEventListener('inputKeyWordFocusout', me.inputKeyWordFocusout, me);
     },
 
     positionAdjustment: function(target){
@@ -87,7 +107,7 @@ $class('tool.ContextMenu').define({
             type: "GET",
             contentType: "application/json",
             dataType: "json",
-            headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
+            //headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
 			success: function(result) {
                 if(result && result.residentialAddress.length>0){
                     if(attType=='msg'){
@@ -104,40 +124,74 @@ $class('tool.ContextMenu').define({
 
     msgShow: function(result){
         var me = this;
+        if(me.timerwarn){
+            clearInterval(me.timerwarn);
+            me.addressMsg.hide();
+        }
         me.parcelAddress.text("지번주소: " + result.residentialAddress[0].parcelAddress[0].fullAddress);
         if(result.residentialAddress[0].roadAddress && result.residentialAddress[0].roadAddress.length>0){
             me.roadAddress.text("도로명주소: " + result.residentialAddress[0].roadAddress[0].fullAddress);
         }else{
             me.roadAddress.text("도로명주소: ");
         }
+        var max = Math.max(me.parcelAddress.text().length, me.roadAddress.text().length)
 
         var adjustment = me.positionAdjustment(me.addressMsg);
-        me.addressMsg.css({'left':adjustment.x, 'top':adjustment.y});
+        me.addressMsg.css({'left':adjustment.x, 'top':adjustment.y, 'width':(16+(max*8))});
         me.addressMsg.show();
 
         me.timerwarn = setInterval(function() {
             clearInterval(me.timerwarn);
             me.addressMsg.hide();
         },3000);
+
+        _app.placeSearch.placeKeyword_dom.val(result.residentialAddress[0].parcelAddress[0].fullAddress);
+        _app.placeSearch.searchCall(true);
     },
 
     roadSearchBind: function(result, attType){
         var me = this;
-        var marker = new olleh.maps.overlay.Marker({
-            position: me.coord,
-            icon:{url:'./assets/images/img_start.gif'},
-        });
+        var marker = null;
+
+        if(attType=='start'){
+            marker = new olleh.maps.overlay.Marker({
+                position: me.coord,
+                icon:{url:'./assets/images/turnByturn/img_start.png',size: new olleh.maps.Size(45, 45)},
+            });
+        }else if(attType=='end'){
+            marker = new olleh.maps.overlay.Marker({
+                position: me.coord,
+                icon:{url:'./assets/images/turnByturn/img_stop.png', size: new olleh.maps.Size(45, 45)},
+            });
+        }else if(attType=='wp'){
+            marker = new olleh.maps.overlay.Marker({
+                position: me.coord,
+                icon:{url:'./assets/images/turnByturn/img_via.png', size: new olleh.maps.Size(45, 45)},
+            });
+        }
+
         marker.purifyData = {};
         //marker.purifyData.name = result.residentialAddress[0].roadAddress[0].fullAddress;
         marker.purifyData.name = result.residentialAddress[0].parcelAddress[0].fullAddress;
         _app.placeSearch.hide();
-        _app.roadSearch.show();
         if(attType=='start'){
             _app.roadSearch.setStart(marker, true);
         }else if(attType=='end'){
             _app.roadSearch.setEnd(marker, true);
         }else if(attType=='wp'){
             _app.roadSearch.setWp(marker, true);
+        }
+        _app.roadSearch.show();
+    },
+
+    inputKeyWordFocusout: function(arg){
+        var me = this;
+        if(arg.target.parent().parent()[0].id=='geo_box01'){
+            if(arg.target.val()==''){
+                me.searchEle.attr('class', 'ico_search line-through');
+            }else{
+                me.searchEle.attr('class', 'ico_search');
+            }
         }
     }
 });

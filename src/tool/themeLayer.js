@@ -118,6 +118,10 @@ $class('tool.ThemeLayer').define({
     searchCall: function(start){
         var me = this;
         me.mapClear();
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
+        }
         if(!me.themeCode){
             return;
         }
@@ -141,7 +145,7 @@ $class('tool.ThemeLayer').define({
             type: "post",
             contentType: "application/json",
             dataType: "json",
-            headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
+            //headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
 			data: JSON.stringify({
                 "theme":{"code":[me.themeCode]},
                 //"point":{"lat":point.y, "lng":point.x},
@@ -247,15 +251,22 @@ $class('tool.ThemeLayer').define({
             $(".btn_geolist .ico_start").click(function(){
                 me.infoWindow.close();
                 _app.placeSearch.hide();
-                _app.roadSearch.show();
                 _app.roadSearch.setStart(marker);
+                _app.roadSearch.show();
             });
     
             $(".btn_geolist .ico_end").click(function(){
                 me.infoWindow.close();
                 _app.placeSearch.hide();
-                _app.roadSearch.show();
                 _app.roadSearch.setEnd(marker);
+                _app.roadSearch.show();
+            });
+
+            $(".btn_geolist .ico_via").click(function(){
+                me.infoWindow.close();
+                _app.placeSearch.hide();
+                _app.roadSearch.setWp(marker);
+                _app.roadSearch.show();
             });
         },500);
     },

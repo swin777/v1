@@ -5,6 +5,8 @@ $class('tool.PlaceSearch').define({
     currMakers: [],
 
     geo_box01_dom: $('#geo_box01'), //검색입력영역
+    addressResult_dom:$("#addressResult"),
+    addressList_dom:$('#addressList'),
     placeResult_dom:$("#placeResult"),
     placeList_dom:$('#placeList'),
     placePage_dom:$('#placePage'),
@@ -15,19 +17,31 @@ $class('tool.PlaceSearch').define({
     placeOrder2_dom: $('#placeSearchResult #placeOrder2'),
     placeSearchResult_dom: $("#placeSearchResult"), //검색결과영역
     placeElement_dom:null,
+    addressElement_dom:null,
+    placeTab_dom:$('.placeTab'),
+    addressTitle_dom:$('#addressTitle'),
+    placeTitle_dom:$('#placeTitle'),
+    currentTab_dom:$('#p_all'),
+    addressCnt_dom: $('#addressCnt'),
+    onlyplaceCnt_dom: $('#onlyplaceCnt'),
 
     clusterer: null,
     infoWindow: null,
     autoComplate:null, 
     pageNavi: null, 
+    addressHeight: 0,
+    addressPolyGons: [],
+
+    oldSearchKeyWorkd:null, //검색했던 키워드 페이지X, 순수하게 새로키워드입력후 검색할때
 
     //생성자
     PlaceSearch: function(){
         var me = this;
-        require(["raw-loader!./html/placeResult.html", "raw-loader!./html/placeInfoWindow.html", 
+        require(["raw-loader!./html/placeResult.html", "raw-loader!./html/addressResult.html", "raw-loader!./html/placeInfoWindow.html", 
                  "raw-loader!./html/placeClusterInfoWindow.html", '../util/autoComplate', '../util/pageNavi'],
-            function(placeResultHtml, placeInfoWindow, placeClusterInfoWindow, autoComplate, pageNavi) {
+            function(placeResultHtml, addressResultHtml, placeInfoWindow, placeClusterInfoWindow, autoComplate, pageNavi) {
                 me.tmpl.placeResultHtml = placeResultHtml;
+                me.tmpl.addressResultHtml = addressResultHtml;
                 me.tmpl.placeInfoWindow = placeInfoWindow;
                 me.tmpl.placeClusterInfoWindow = placeClusterInfoWindow;
                 me.autoComplate = new util.AutoComplate(me.placeKeyword_dom, {fun:me.autoComplateCallback, thisArg:me});
@@ -77,10 +91,16 @@ $class('tool.PlaceSearch').define({
         });
 
         $("#placeClear").click(function(){
+            me.placeKeyword_dom.val('');
+            me.addressResult_dom.html('');
+            me.addressList_dom.scrollTop(0);
             me.placeResult_dom.html('');
             me.placeList_dom.scrollTop(0);
+            me.placeList_dom.css('top', 141);
             me.placeKeywordStr_dom.text('');
             me.placeCnt_dom.text('');
+            me.addressCnt_dom.text('');
+            me.onlyplaceCnt_dom.text('');
             me.pageNavi.clear();
             me.clusterer.clear();
         });
@@ -89,18 +109,55 @@ $class('tool.PlaceSearch').define({
             me.placeOrder1_dom.attr('class', 'on');
             me.placeOrder2_dom.attr('class', '');
             me.sortBy = 'relevance';
-            me.searchCall();
+            me.searchCall(true);
         });
         me.placeOrder2_dom.click(function(){
             me.placeOrder1_dom.attr('class', '');
             me.placeOrder2_dom.attr('class', 'on');
             me.sortBy = 'distance';
-            me.searchCall();
+            me.searchCall(true);
         });
 
         $(".btn_road").click(function () {
             _app.placeSearch.hide();
             _app.roadSearch.show();
+        });
+
+        me.placeTab_dom.click(function () {
+            me.placeTab_dom.attr('class', 'placeTab');
+            $(this).attr('class', 'placeTab on');
+            me.currentTab_dom = $(this);
+            if(this.id=='p_all'){
+                me.addressList_dom.show();
+                me.addressTitle_dom.show();
+                me.placeList_dom.show();
+                me.placeTitle_dom.show();
+                me.placeList_dom.css('top', 141 + me.addressHeight);
+                me.clusterer.doActivate()
+                me.addressPolyGons.forEach((polygon, idx) => {
+                    polygon.setMap(_map);
+                });
+            }else if(this.id=='p_place'){
+                me.addressList_dom.hide();
+                me.addressTitle_dom.hide();
+                me.placeList_dom.show();
+                me.placeTitle_dom.show();
+                me.placeList_dom.css('top', 110);
+                me.clusterer.doActivate();
+                me.addressPolyGons.forEach((polygon, idx) => {
+                    polygon.setMap(null);
+                });
+            }else if(this.id=='p_address'){
+                me.addressList_dom.show();
+                me.addressTitle_dom.show();
+                me.placeList_dom.hide();
+                me.placeTitle_dom.hide();
+                me.placeList_dom.css('top', 141 + me.addressHeight);
+                me.clusterer.doDeactivate();
+                me.addressPolyGons.forEach((polygon, idx) => {
+                    polygon.setMap(_map);
+                });
+            }
         });
     },
 
@@ -122,27 +179,34 @@ $class('tool.PlaceSearch').define({
         if(me.placeKeyword_dom.val()==""){
             return;
         }
-        if(pageInit){
+        if(pageInit || (me.placeKeyword_dom.val()!="" && me.oldSearchKeyWorkd != me.placeKeyword_dom.val())){
             me.pageNavi.clear();
+        }
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
         }
         me.placeResultVisible();
         me.autoComplate.close();
         var start = (me.pageNavi.currentPage-1) * me.pageNavi.pageSize;
         var point = olleh.maps.LatLng.valueOf(_map.getCenter());
+        me.oldSearchKeyWorkd = me.placeKeyword_dom.val();
         $.ajax({
 			url: _app.geomasterUrl+"/search/v1.0/pois?sortBy="+me.sortBy+"&numberOfResults="+me.pageNavi.pageSize+"&start="+start,
             type: "post",
             contentType: "application/json",
             dataType: "json",
-            headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
+            //headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
 			data: JSON.stringify({"terms":me.placeKeyword_dom.val(), "point":{"lat":point.y, "lng":point.x}}),
 			success: function(result) {
                 me.searchResult = result;
                 if(me.searchResult.pois){
                     me.placeDisplay();
-                    me.mapDisplay();
+                    me.addressDisplay();
+                    me.placeMapDisplay();
+                    me.addressMapDisplay();
                     me.placeKeywordStr_dom.text(me.placeKeyword_dom.val());
-                    me.placeCnt_dom.text(me.searchResult.numberOfPois + "건");
+                    me.currentTab_dom.trigger('click');
                 }
             },
             error: function(err){
@@ -151,7 +215,7 @@ $class('tool.PlaceSearch').define({
     },
 
     autoComplateCallback: function(keyWord){
-        this.searchCall();
+        this.searchCall(true);
     },
 
     placeResultVisible: function(){
@@ -160,10 +224,45 @@ $class('tool.PlaceSearch').define({
         _app.eventbusjs.dispatch('placeSearchShow');
     },
 
+    addressDisplay: function(){
+        var me = this;
+        me.addressResult_dom.html('');
+        me.addressList_dom.scrollTop(0);
+        me.addressHeight = 0;
+        var cnt = 0;
+        me.searchResult.residentialAddress.forEach((element, idx) => {
+            if(element.parcelAddress.length>0){
+                var obj = element.parcelAddress[0];
+                obj.id = "address_" + idx;
+                if(element.roadAddress.length>0){
+                    obj['road_fullAddress'] = element.roadAddress[0].fullAddress;
+                }else{
+                    obj['road_fullAddress'] ='';
+                }
+                me.addressResult_dom.append(olleh.maps.util.applyTemplate( me.tmpl.addressResultHtml, obj));
+                me.addressHeight += 47;
+                cnt++;
+            }
+        });
+        me.placeList_dom.css('top', 141 + me.addressHeight);
+        me.addressCnt_dom.html("&nbsp;" + new Intl.NumberFormat("en-US").format(cnt) + "건"); 
+        me.placeCnt_dom.text(new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois + cnt) + "건"); 
+
+        me.addressElement_dom = $('#addressList .addressElement');
+        me.addressElement_dom.click(function(){
+            var me = _app.placeSearch;
+            me.addressElement_dom.attr('class', 'addressElement');
+            $(this).attr('class', 'addressElement on');
+            var polygon = me.addressPolyGons[parseInt(this.id.split("address_")[1])];
+            _map.fitBounds(polygon.getBounds());
+        })
+    },
+
     placeDisplay: function(){
         var me = this;
         me.placeResult_dom.html('');
         me.placeList_dom.scrollTop(0);
+        me.onlyplaceCnt_dom.html("&nbsp;" + new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois) + "건"); 
         me.searchResult.pois.forEach((element, idx) => {
             var phone = '';
             if(element.phones){
@@ -174,7 +273,7 @@ $class('tool.PlaceSearch').define({
                     phone = element.phones.representation[0];
                 }
             }
-            var obj = {id:element.id, order:String.fromCharCode(65+idx), name:element.name,
+            var obj = {id:element.id, order:String.fromCharCode(65+idx), name:element.name, branch:' ' + element.branch, subName:element.subName?'('+element.subName+')':'',
                     phone:phone, category:element.category.middleName + " > " + element.category.subName,
                     address:element.address.siDo + " " + element.address.siGunGu + " " + element.address.street + " " + element.address.streetNumber,
                     addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber,
@@ -205,8 +304,8 @@ $class('tool.PlaceSearch').define({
             me.currMakers.forEach((marker, idx) => {
                 if(this.id=='start_'+marker.uuid){
                     _app.placeSearch.hide();
-                    _app.roadSearch.show();
                     _app.roadSearch.setStart(marker);
+                    _app.roadSearch.show();
                     return;
                 }
             });
@@ -216,8 +315,8 @@ $class('tool.PlaceSearch').define({
             me.currMakers.forEach((marker, idx) => {
                 if(this.id=='end_'+marker.uuid){
                     _app.placeSearch.hide();
-                    _app.roadSearch.show();
                     _app.roadSearch.setEnd(marker);
+                    _app.roadSearch.show();
                     return;
                 }
             });
@@ -245,7 +344,48 @@ $class('tool.PlaceSearch').define({
         }
     },
 
-    mapDisplay: function(){
+    addressMapDisplay: function(){
+        var me = this;
+        var bound = null;
+        me.addressPolyGons.forEach((polygon, idx) => {
+            polygon.setMap(null);
+        });
+        me.addressPolyGons = [];
+        me.searchResult.residentialAddress.forEach((element, idx) => {
+            element.parcelAddress.forEach((placeElement, idx2) => {
+                if(placeElement.geographicInformation && placeElement.geographicInformation.shape){
+                    var object = placeElement.geographicInformation.shape;
+                    for(var k=0; k< object.coordinates.length; k++){
+                        var _paths = [];
+                        for(var j=0; j< (object.coordinates[k])[0].length ; j++){
+                            var _point = (object.coordinates[k])[0][j];
+                            _paths.push(new olleh.maps.LatLng(_point[1], _point[0]));
+                            var utmk = olleh.maps.UTMK.valueOf(new olleh.maps.LatLng(_point[1], _point[0]));
+                            if(!bound){
+                                bound = new olleh.maps.Bounds(utmk, utmk);
+                            }else{
+                                bound = bound.union(utmk);
+                            }
+                        }
+                        var polygon = new olleh.maps.vector.Polygon({
+                            map: _map,
+                            paths: new olleh.maps.Path(_paths),
+                            strokeWeight:3,
+                            strokeColor:'blue',
+                            fillColor:'blue',
+                            fillOpacity:0.3
+                        });
+                        me.addressPolyGons.push(polygon);
+                    }
+                }
+            });
+        });
+        if(bound){
+            _map.fitBounds(bound);
+        }
+    },
+
+    placeMapDisplay: function(){
         var me = this;
         var bound = null;
         me.currMakers = [];
@@ -253,7 +393,7 @@ $class('tool.PlaceSearch').define({
         me.clusterer.setMap(null);
         me.searchResult.pois.forEach((element, idx) => {
             var latLngPoint = new olleh.maps.LatLng(element.point.lat, element.point.lng);
-            var point = olleh.maps.UTMK.valueOf(latLngPoint)
+            var point = olleh.maps.UTMK.valueOf(latLngPoint);
             var marker = new olleh.maps.overlay.Marker({
                 position: point,
                 icon:{url:'./assets/images/ic_firm_'+String.fromCharCode(65+idx)+'.png'},
@@ -266,7 +406,6 @@ $class('tool.PlaceSearch').define({
             });
             me.currMakers.push(marker);
             me.clusterer.add(marker);
-            //_app.themeLayer.selectRelease();
 
             if(idx==0){
                 bound = new olleh.maps.Bounds(point, point);
@@ -283,10 +422,8 @@ $class('tool.PlaceSearch').define({
 
     infoWindowShow: function(marker, purifyData, maxZoomIn, centerMove, listFocus){
         var me = this;
-        if(me.infoWindow){
-            me.infoWindow.close();
-            delete me.infoWindow;
-        }
+        _app.roadSearch.infoWindowClose();
+        me.infoWindowClose();
         if(listFocus){
             me.listElementFocus(null);
         }
@@ -301,7 +438,12 @@ $class('tool.PlaceSearch').define({
             _map.setCenter(marker.getPosition());
         }
         if(maxZoomIn){
-            _map.setZoom(13);
+            if(_map.getZoom()<11){
+                _map.setZoom(11);
+            }
+            if(centerMove){
+                _map.setCenter(marker.getPosition());
+            }
         }
         me.infoWindow.setPixelOffset(new olleh.maps.Point(0, 10));
         me.infoWindow.open(_map, marker);
@@ -329,22 +471,22 @@ $class('tool.PlaceSearch').define({
             $(".btn_geolist .ico_start").click(function(){
                 me.infoWindow.close();
                 _app.placeSearch.hide();
-                _app.roadSearch.show();
                 _app.roadSearch.setStart(marker);
+                _app.roadSearch.show();
             });
     
             $(".btn_geolist .ico_end").click(function(){
                 me.infoWindow.close();
                 _app.placeSearch.hide();
-                _app.roadSearch.show();
                 _app.roadSearch.setEnd(marker);
+                _app.roadSearch.show();
             });
 
             $(".btn_geolist .ico_via").click(function(){
                 me.infoWindow.close();
                 _app.placeSearch.hide();
-                _app.roadSearch.show();
                 _app.roadSearch.setWp(marker);
+                _app.roadSearch.show();
             });
         },500);
     },
@@ -360,10 +502,8 @@ $class('tool.PlaceSearch').define({
             lastmaker = marker;
             tmpl += olleh.maps.util.applyTemplate(me.tmpl.placeClusterInfoWindow, marker.purifyData)
         })
-        if(me.infoWindow){
-            me.infoWindow.close();
-            me.listElementFocus(null);
-        }
+        _app.roadSearch.infoWindowClose();
+        me.infoWindowClose();
         me.infoWindow = new override.CustomInfoWindow({
             disableAutoPan: false,
             position: lastmaker.getPosition(),
@@ -389,10 +529,19 @@ $class('tool.PlaceSearch').define({
         },500);
     },
 
+    infoWindowClose: function(){
+        var me = this;
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
+        }
+    },
+
     hide: function(){
         var me = this;
         me.geo_box01_dom.hide();
         me.placeSearchResult_dom.hide();
+        me.infoWindowClose();
         if(me.clusterer){
             me.clusterer.clear();
         }

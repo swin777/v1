@@ -19,12 +19,14 @@ $class('map.MapHandler').define({
             copyrightControlOptions:{bottom:9},
             mapTypeControl: false,
             measureControl: true,
-            measureControlOptions:{right:15}
+            measureControlOptions:{right:15},
+            zoom:11,
+            center: new olleh.maps.UTMK(953828.1032726372, 1952440.2230947923)
         });
     
-        var coordCenter = new olleh.maps.UTMK(965898.9999999991, 1928928.9999999197); //958386.063532902, 1941447.5761742294
-        this.map.setCenter(coordCenter);
-        this.map.setZoom(11);
+        //var coordCenter = new olleh.maps.UTMK(953828.1032726372, 1952440.2230947923); //958386.063532902, 1941447.5761742294:우면동, 953828.1032726372, 1952440.2230947923:광화문, 965898.9999999991, 1928928.9999999197:분당
+        //this.map.setCenter(coordCenter);
+        //this.map.setZoom(11);
         _map = this.map;
 
         $('.btn_present').click(function() {

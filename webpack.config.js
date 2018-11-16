@@ -28,5 +28,20 @@ module.exports = {
                 }
             }
         ]
+    },
+    devServer: {
+        proxy: {
+            '/geomaster': {
+                target: 'https://gis.kt.com',
+                pathRewrite: {'^/geomaster' : ''},
+                headers: {
+                    'Authorization': 'Bearer 9886c37a33aca43c88541d669306b8fc431a710760ba0982c524eb30223ecbf657f880a9',
+                    'key': '9886c37a33aca43c88541d669306b8fc431a710760ba0982c524eb30223ecbf657f880a9',
+                    'Accept': 'application/json',
+                    'Accept-Language': 'ko-KR'
+                },
+                secure: false
+            }
+        }
     }
 };

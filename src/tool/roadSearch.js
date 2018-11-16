@@ -122,21 +122,30 @@ $class('tool.RoadSearch').define({
             me.attMappingInfo['end'] = start;
             me['endKeyword_dom'].val(start.purifyData.name);
             if(me.attMappingInfo['start'] && me.attMappingInfo['end']){
-                me.routeSearch.searchCall(me.attMappingInfo);
+                me.routeSearchCall();
             }
         });
 
-        $("#attSearchResult .greenBtn").click(function(){
+        $("#attSearchResult #wpAddBtn").click(function(){
+            me.wpAdd();
+        });
+
+        $("#attSearchResult #routeClearBtn").click(function(){
+            me.allClear();
+        });
+
+        $("#attSearchResult #routeSerchBtn").click(function(){
             if(me.infoWindow){
                 me.infoWindow.close();
             }
             if(me.clusterer){
                 me.clusterer.clear();
             }
-            me.routeSearch.searchCall(me.attMappingInfo);
+            me.routeSearchCall();
         });
 
         $("#roadClear").click(function(){
+            me[me.attention+"Keyword_dom"].val('');
             me.attResult_dom.html('');
             me.attList_dom.scrollTop(0);
             me.attKeywordStr_dom.text('');
@@ -164,6 +173,16 @@ $class('tool.RoadSearch').define({
 
     attMapping: function(marker){
         var me = this;
+        for(var member in me.attMappingInfo){
+            if(member!=me.attention && me.attMappingInfo[member]){
+                if(marker.getPosition().x == me.attMappingInfo[member].getPosition().x && marker.getPosition().y == me.attMappingInfo[member].getPosition().y){
+                    me.attMappingInfo[me.attention] = null;
+                    me[me.attention+"Keyword_dom"].val('');
+                    alert(me.getKeywordLabel(me.attention) + " 과 " + me.getKeywordLabel(member) + " 동일합니다.");
+                    return;
+                }
+            }
+        }
         me.attMappingInfo[me.attention] = marker;
         me[me.attention+'Keyword_dom'].val(marker.purifyData.name);
     },
@@ -172,7 +191,29 @@ $class('tool.RoadSearch').define({
         var me = this;
         me.attention = etcArg.attention
         me.keyWord = keyWord;
-        me.searchCall();
+        me.searchCall(true);
+    },
+
+    allClear: function(){
+        var me = this;
+        me.attList_dom.show();
+        me.routeList_dom.hide();
+        me.attWrap_dom.show();
+        me.routeWrap_dom.hide();
+        me.routeSearch.mapClear();
+        me.pageNavi.clear();
+        me.startKeyword_dom.val('');
+        me.endKeyword_dom.val('');
+        me.wp1Keyword_dom.val('');
+        me.wp2Keyword_dom.val('');
+        me.wp3Keyword_dom.val('');
+        me.attMappingInfo = {start:null, wp1:null, wp2:null, wp3:null, end:null};
+        me.attResult_dom.html('');
+        me.attList_dom.scrollTop(0);
+        me.attKeywordStr_dom.text('');
+        me.attCnt_dom.text('');
+        me.wpRemoveAll();
+        me.mapClear();
     },
 
     wpAdd: function(){
@@ -196,13 +237,29 @@ $class('tool.RoadSearch').define({
         var me = this;
         $(target.parentNode).hide();
         me.wpCnt--;
-        var id = 'wp'+target.parentNode.id.split("").reverse().join("").substring(0,1);
+        //var id = 'wp'+target.parentNode.id.split("").reverse().join("").substring(0,1);
+        var id = target.parentNode.id;
         me[id+'Keyword_dom'].val('');
         me.attMappingInfo[id] = null;
         me.attSearchResultHeight();
         if(me.attMappingInfo['start'] && me.attMappingInfo['end']){
-            me.routeSearch.searchCall(me.attMappingInfo);
+            me.routeSearchCall();
         }
+        if(me.wpMarker){
+            me.wpMarker.setMap(null);
+        }
+    },
+
+    wpRemoveAll: function(){
+        var me = this;
+        me.wpCnt = 0;
+        for(var i=1; i<4; i++){
+            var id ='wp'+i;
+            $('#'+id).hide();
+            me[id+'Keyword_dom'].val('');
+            me.attMappingInfo[id] = null;
+        }
+        me.attSearchResultHeight();
     },
 
     searchCall: function(pageInit){
@@ -214,9 +271,14 @@ $class('tool.RoadSearch').define({
         me.routeList_dom.hide();
         me.attWrap_dom.show();
         me.routeWrap_dom.hide();
+        me.currMakers = [];
         me.routeSearch.mapClear();
         if(pageInit){
             me.pageNavi.clear();
+        }
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
         }
         me.attResultVisible();
         me.autoComplateArr.forEach((autoComplate) => {
@@ -225,11 +287,11 @@ $class('tool.RoadSearch').define({
         var start = (me.pageNavi.currentPage-1) * me.pageNavi.pageSize;
         var point = olleh.maps.LatLng.valueOf(_map.getCenter());
         $.ajax({
-			url: _app.geomasterUrl+"/search/v1.0/pois?sortBy="+me.sortBy+"&numberOfResults="+me.pageNavi.pageSize+"&start="+start,
+			url: _app.geomasterUrl+"/search/v1.0/pois?sortBy="+me.sortBy+"&numberOfResults="+me.pageNavi.pageSize+"&start="+start+"&mode=NAVIGATION",
             type: "post",
             contentType: "application/json",
             dataType: "json",
-            headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
+            //headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
 			data: JSON.stringify({"terms":me.keyWord, "point":{"lat":point.y, "lng":point.x}}),
 			success: function(result) {
                 me.searchResult = result;
@@ -237,7 +299,7 @@ $class('tool.RoadSearch').define({
                     me.attDisplay();
                     me.mapDisplay();
                     me.attKeywordStr_dom.text(me.keyWord);
-                    me.attCnt_dom.text(me.searchResult.numberOfPois + "건");
+                    me.attCnt_dom.text(new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois) + "건");
                 }
             },
             error: function(err){
@@ -259,7 +321,7 @@ $class('tool.RoadSearch').define({
                     phone = element.phones.representation[0];
                 }
             }
-            var obj = {id:element.id, order:String.fromCharCode(65+idx), name:element.name,
+            var obj = {id:element.id, order:String.fromCharCode(65+idx), name:element.name, branch:' ' + element.branch, subName:element.subName?'('+element.subName+')':'',
                     phone:phone, category:element.category.middleName + " > " + element.category.subName,
                     address:element.address.siDo + " " + element.address.siGunGu + " " + element.address.street + " " + element.address.streetNumber,
                     addressGibun:element.address.eupMyeonDong + " " + element.address.houseNumber,
@@ -291,6 +353,7 @@ $class('tool.RoadSearch').define({
             me.currMakers.forEach((marker, idx) => {
                 if(this.id=='start_'+marker.uuid){
                     me.setStart(marker);
+                    me.show();
                     return;
                 }
             });
@@ -300,6 +363,7 @@ $class('tool.RoadSearch').define({
             me.currMakers.forEach((marker, idx) => {
                 if(this.id=='end_'+marker.uuid){
                     me.setEnd(marker);
+                    me.show();
                     return;
                 }
             });
@@ -332,11 +396,12 @@ $class('tool.RoadSearch').define({
     mapDisplay: function(){
         var me = this;
         var bound = null;
-        me.currMakers = [];
-        me.clusterer.clear();
-        me.clusterer.setMap(null);
+        me.mapClear();
         me.searchResult.pois.forEach((element, idx) => {
             var latLngPoint = new olleh.maps.LatLng(element.point.lat, element.point.lng);
+            if(element.routeOptimization && element.routeOptimization.multipleEntrance && element.routeOptimization.multipleEntrance.length>0){
+                latLngPoint = new olleh.maps.LatLng(element.routeOptimization.multipleEntrance[0].lat, element.routeOptimization.multipleEntrance[0].lng);
+            }
             var point = olleh.maps.UTMK.valueOf(latLngPoint)
             var marker = new olleh.maps.overlay.Marker({
                 position: point,
@@ -368,10 +433,8 @@ $class('tool.RoadSearch').define({
 
     infoWindowShow: function(marker, purifyData, maxZoomIn, centerMove, listFocus, tmpl){
         var me = this;
-        if(me.infoWindow){
-            me.infoWindow.close();
-            delete me.infoWindow;
-        }
+        _app.placeSearch.infoWindowClose();
+        me.infoWindowClose();
         if(listFocus){
             me.listElementFocus(null);
         }
@@ -401,7 +464,12 @@ $class('tool.RoadSearch').define({
             _map.setCenter(marker.getPosition());
         }
         if(maxZoomIn){
-            _map.setZoom(13);
+            if(_map.getZoom()<11){
+                _map.setZoom(11);
+            }
+            if(centerMove){
+                _map.setCenter(marker.getPosition());
+            }
         }
         me.infoWindow.setPixelOffset(new olleh.maps.Point(0, 10));
         me.infoWindow.open(_map, marker);
@@ -411,12 +479,12 @@ $class('tool.RoadSearch').define({
         me.timer = setInterval(function() {
             clearInterval(me.timer);
             $(".btn_lyclose").click(function(){
-            if(me.infoWindow){
-                me.infoWindow.close();
-                me.listElementFocus(null);
-                marker.setZIndex(marker.orgZIndex);
-            }
-
+                if(me.infoWindow){
+                    me.infoWindow.close();
+                    me.listElementFocus(null);
+                    marker.setZIndex(marker.orgZIndex);
+                }
+            });
             $(".btn_geolist .btn_detail").click(function(){
                 if(marker.purifyData.extension && marker.purifyData.extension.homepageURL){
                     window.open(marker.purifyData.extension.homepageURL);
@@ -428,18 +496,20 @@ $class('tool.RoadSearch').define({
             $(".btn_geolist .ico_start").click(function(){
                 me.infoWindow.close();
                 me.setStart(marker);
+                me.show();
             });
     
             $(".btn_geolist .ico_end").click(function(){
                 me.infoWindow.close();
                 me.setEnd(marker);
+                me.show();
             });
 
             $(".btn_geolist .ico_via").click(function(){
                 me.infoWindow.close();
                 me.setWp(marker);
+                me.show();
             });
-        });
         },500)
     },
 
@@ -454,10 +524,8 @@ $class('tool.RoadSearch').define({
             lastmaker = marker;
             tmpl += olleh.maps.util.applyTemplate(me.tmpl.placeClusterInfoWindow, marker.purifyData)
         })
-        if(me.infoWindow){
-            me.infoWindow.close();
-            me.listElementFocus(null);
-        }
+        _app.placeSearch.infoWindowClose();
+        me.infoWindowClose();
         me.infoWindow = new override.CustomInfoWindow({
             disableAutoPan: false,
             position: lastmaker.getPosition(),
@@ -480,6 +548,14 @@ $class('tool.RoadSearch').define({
         });
     },
 
+    infoWindowClose: function(){
+        var me = this;
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
+        }
+    },
+
     attSearchResultHeight: function(){
         var me = this;
         var height = (me.wpCnt * 40) + 80
@@ -492,35 +568,57 @@ $class('tool.RoadSearch').define({
         _app.eventbusjs.dispatch('roadSearchShow');
     },
 
+    startMarker:null,
     setStart: function(marker, noInfoWindow){
         var me = this;
+        if(me.startMarker){
+            me.startMarker.setMap(null);
+        }
+        me.startMarker = marker;
         me.attention = 'start';
         me.attMapping(marker);
         if(!noInfoWindow){
             me.infoWindowShow(marker, marker.purifyData, true, true, false, me.tmpl.routeInfoWindow);
         }
-        me.clusterer.add(marker);
+        if(!(me.attMappingInfo['start'] && me.attMappingInfo['end'])){
+            me.startMarker.setMap(_map);
+        }
     },
 
+    endMarker:null,
     setEnd: function(marker, noInfoWindow){
         var me = this;
+        if(me.endMarker){
+            me.endMarker.setMap(null);
+        }
+        me.endMarker = marker;
         me.attention = 'end';
         me.attMapping(marker);
         if(!noInfoWindow){
             me.infoWindowShow(marker, marker.purifyData, true, true, false, me.tmpl.routeInfoWindow);
         }
-        me.clusterer.add(marker);
+        if(!(me.attMappingInfo['start'] && me.attMappingInfo['end'])){
+            me.endMarker.setMap(_map);
+        }
     },
 
+    wpMarker:null,
     setWp: function(marker, noInfoWindow){
         var me = this;
+        if(me.wpMarker){
+            me.wpMarker.setMap(null);
+        }
         if(me.wpCnt==0){
             me.wpAdd();
         }
+        me.wpMarker = marker;
         me.attention = 'wp' + me.wpCnt;
         me.attMapping(marker);
         if(!noInfoWindow){
             me.infoWindowShow(marker, marker.purifyData, true, true, false, me.tmpl.routeInfoWindow);
+        }
+        if(!(me.attMappingInfo['start'] && me.attMappingInfo['end'])){
+            me.wpMarker.setMap(_map);
         }
     },
 
@@ -528,7 +626,11 @@ $class('tool.RoadSearch').define({
         var me = this;
         me.geo_box02_dom.hide();
         me.attSearchResult_dom.hide();
+        me.attResult_dom.html(''); //POI 검색했던 결과는 지운다.
+        me.attList_dom.scrollTop(0);
+        me.pageNavi.clear();
         me.routeSearch.mapClear();
+        me.infoWindowClose();
         if(me.clusterer){
             me.clusterer.clear();
         }
@@ -540,7 +642,7 @@ $class('tool.RoadSearch').define({
         me.geo_box02_dom.show();
         me.attSearchResult_dom.show();
         if(me.attMappingInfo['start'] && me.attMappingInfo['end']){
-            me.routeSearch.searchCall(me.attMappingInfo);
+            me.routeSearchCall();
         }
         _app.eventbusjs.dispatch('roadSearchShow');
     },
@@ -550,5 +652,67 @@ $class('tool.RoadSearch').define({
         if(me.clusterer){
             me.clusterer.clear();
         }
+    },
+
+    mapClear: function(){
+        var me = this;
+        if(me.clusterer){
+            me.clusterer.clear();
+            me.clusterer.setMap(null);
+        }
+        if(me.startMarker){
+            me.startMarker.setMap(null);
+        }
+        if(me.endMarker){
+            me.endMarker.setMap(null);
+        }
+        if(me.wpMarker){
+            me.wpMarker.setMap(null);
+        }
+    },
+
+    routeSearchCall: function(){
+        var me = this;
+        if(me.infoWindow){
+            me.infoWindow.close();
+            delete me.infoWindow;
+        }
+        if(me.startKeyword_dom.val()=='' && me.attMappingInfo['start']){
+            me.startKeyword_dom.val(me.attMappingInfo['start'].purifyData.name);
+        }
+        if(me.endKeyword_dom.val()=='' && me.attMappingInfo['end']){
+            me.endKeyword_dom.val(me.attMappingInfo['end'].purifyData.name);
+        }
+        for(var i=1; i<4; i++){
+            if(me.attMappingInfo['wp'+i]){
+                if(me['wp'+i+'Keyword_dom'].val()=='' && me['wp'+i+'Keyword_dom']){
+                    me['wp'+i+'Keyword_dom'].val(me.attMappingInfo['wp'+i].purifyData.name);
+                }
+            }
+        }
+        if(!me.attMappingInfo.start){
+            alert("출발지를 선택하세요.");
+            return null;
+        }
+        if(!me.attMappingInfo.end){
+            alert("도착지를 선택하세요.");
+            return null;
+        }
+        me.routeSearch.searchCall(me.attMappingInfo);
+    },
+
+    getKeywordLabel: function(keywordType){
+        if(keywordType=='start'){
+            return '출발지';
+        }else if(keywordType=='wp1'){
+            return '경유지1';
+        }else if(keywordType=='wp2'){
+            return '경유지2';
+        }else if(keywordType=='wp3'){
+            return '경유지3';
+        }else if(keywordType=='end'){
+            return '도착지';
+        }
+        return '';
     }
 });

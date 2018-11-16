@@ -31,6 +31,7 @@ $class('tool.BaseLayer').define({
     leftExpandCollapse: function(){
         if($('.ollehmap-corner').length>0){
             $('.ollehmap-corner').css('left', _app['leftResultMgr'].leftGap());
+            $('.ollehmap-corner h1').css('position', 'initial');
         }
     },
 

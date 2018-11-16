@@ -11,6 +11,7 @@ $class('tool.RouteSearch').define({
     routeByPoiDiv: $('.routeByPoiDiv'),
     routeByPoiInput: $('#routeByPoiInput'),
     attSearchResult_dom: $("#attSearchResult"), //검색결과영역
+    routeIngMsg: $(".routeIngMsg"),
 
     tmpl:{},
     attMappingInfo:null,
@@ -99,29 +100,37 @@ $class('tool.RouteSearch').define({
 
     getWp: function(idx){
         var me = this;
+        var arr = [];
         for(var i=1; i<4; i++){
-            if(me.attMappingInfo['wp'+i] && me.attMappingInfo['wp'+i].order==idx){
-               return  me.attMappingInfo['wp'+i];
-               break;
+            if(me.attMappingInfo['wp'+i]){
+                arr.push(me.attMappingInfo['wp'+i])
             }
         }
+        return arr[idx-1];
     },
 
     searchCall: function(attMappingInfo){
         var me = this;
+        _app.roadSearch.mapClear();
         if(attMappingInfo){
             me.attMappingInfo = attMappingInfo;
         }
         me.wpOrder();
         me.mapClear();
         var param = me.makeSendParam();
+        if(!param || me.routeIngMsg.css('display')=='block'){
+            return;
+        }
         me.executeMode = true;
+        me.routeIngMsg.show();
         $.ajax({
-            url: _app.geomasterUrl+"/lbs/rp?key="+_app.ollehApiKey+param,
+            //url: _app.geomasterUrl+"/lbs/rp?key="+_app.ollehApiKey+param,
+            url: _app.geomasterUrl+"/lbs/rp?1=1"+param,
             type: "GET",
             contentType: "application/json",
             dataType: "json",
 			success: function(result) {
+                me.routeIngMsg.hide();
                 me.attList_dom.hide();
                 me.routeList_dom.show();
                 me.attWrap_dom.hide();
@@ -134,6 +143,7 @@ $class('tool.RouteSearch').define({
                 me.executeMode = false;
             },
             error: function(err){
+                me.routeIngMsg.hide();
                 alert("길찾기 실패하였습니다.");
                 me.executeMode = false;
             }
@@ -179,15 +189,16 @@ $class('tool.RouteSearch').define({
         rg.forEach((rgEle, idx) => {
             var obj = null;
             if(rgEle.type==999){
-                obj = {id:idx, imgUrl:'./assets/images/ic_b_start.png', ment:"출발지: " + me.attMappingInfo.start.purifyData.name};
+                obj = {id:idx, imgUrl:'./assets/images/turnByturn/img_start.png', ment:"출발지: " + me.attMappingInfo.start.purifyData.name, turnByturnImg:'img_start.png', display:'none'};
             }else if(rgEle.type==1000){
                 wpCnt++;
                 var wp = me.getWp(wpCnt);
-                obj = {id:idx, imgUrl:'./assets/images/ic_b_wp.png', ment:"경유지: " + wp.purifyData.name};
+                obj = {id:idx, imgUrl:'./assets/images/turnByturn/img_via.png', ment:"경유지: " + wp.purifyData.name, turnByturnImg:'img_via.png', display:'none'};
             }else if(rgEle.type==1001){
-                obj = {id:idx, imgUrl:'./assets/images/ic_b_end.png', ment:"도착지: " + me.attMappingInfo.end.purifyData.name};
+                obj = {id:idx, imgUrl:'./assets/images/turnByturn/img_stop.png', ment:"도착지: " + me.attMappingInfo.end.purifyData.name, turnByturnImg:'img_stop.png', display:'none'};
             }else{
-                obj = {id:idx, imgUrl:'./assets/images/marker_num_'+idx+'.png', ment:me.ment(rgEle)};
+                var mAndI = me.mentAndImage(rgEle);
+                obj = {id:idx, imgUrl:'./assets/images/marker_num_'+idx+'.png', ment:mAndI.ment, turnByturnImg:mAndI.turnByturnImg, display:'block'};
             }
             me.routeResult_dom.append(olleh.maps.util.applyTemplate( me.tmpl.routeResultHtml, obj));
         });
@@ -239,12 +250,14 @@ $class('tool.RouteSearch').define({
             if(rgEle.type==999){ //출발지
                 var startMarker = new olleh.maps.overlay.Marker({
                     position: me.attMappingInfo.start.getPosition(),
-                    icon:{url:'./assets/images/ic_b_start.png'},
+                    icon:{url:'./assets/images/turnByturn/img_start.png', size: new olleh.maps.Size(45, 45)},
                     map: _map
                 });
                 startMarker.ment = "출발지: " + me.attMappingInfo.start.purifyData.name;
-                startMarker.imgUrl = './assets/images/ic_b_start.png';
+                startMarker.imgUrl = './assets/images/turnByturn/img_start.png';
+                startMarker.turnByturnImg = './assets/images/turnByturn/img_start.png';
                 startMarker.idx = idx;
+                startMarker.turnByturnImgVisible = 'none';
                 startMarker.onEvent('mouseover',function() {
                     startMarker.tooltip = me.addMiniTooltip(startMarker, "출발지: " + me.attMappingInfo.start.purifyData.name);
                 });
@@ -252,7 +265,7 @@ $class('tool.RouteSearch').define({
                     me.removeTooltip(startMarker.tooltip);
                 });
                 startMarker.onEvent('click', function(e) {
-                    me.infoWindowShow(startMarker);
+                    me.infoWindowShow(startMarker, false, false, true);
                 });
                 me.markerArr.push(startMarker);
             }else if(rgEle.type==1000){ //경유지
@@ -260,12 +273,14 @@ $class('tool.RouteSearch').define({
                 var wp = me.getWp(wpCnt);
                 var wpMarker = new olleh.maps.overlay.Marker({
                     position: wp.getPosition(),
-                    icon:{url:'./assets/images/ic_b_wp.png'},
+                    icon:{url:'./assets/images/turnByturn/img_via.png', size: new olleh.maps.Size(45, 45)},
                     map: _map
                 });
                 wpMarker.ment = "경유지: " + wp.purifyData.name;
-                wpMarker.imgUrl = './assets/images/ic_b_wp.png';
+                wpMarker.imgUrl = './assets/images/turnByturn/img_via.png';
+                wpMarker.turnByturnImg = './assets/images/turnByturn/img_via.png';
                 wpMarker.idx = idx;
+                wpMarker.turnByturnImgVisible = 'none';
                 wpMarker.onEvent('mouseover',function() {
                     wpMarker.tooltip = me.addMiniTooltip(wpMarker, "경유지: " + wp.purifyData.name);
                 });
@@ -273,18 +288,20 @@ $class('tool.RouteSearch').define({
                     me.removeTooltip(wpMarker.tooltip);
                 });
                 wpMarker.onEvent('click', function(e) {
-                    me.infoWindowShow(wpMarker);
+                    me.infoWindowShow(wpMarker, false, false, true);
                 });
                 me.markerArr.push(wpMarker);
             }else if(rgEle.type==1001){ //도착지
                 var endMarker = new olleh.maps.overlay.Marker({
                     position: me.attMappingInfo.end.getPosition(),
-                    icon:{url:'./assets/images/ic_b_end.png'},
+                    icon:{url:'./assets/images/turnByturn/img_stop.png', size: new olleh.maps.Size(45, 45)},
                     map: _map
                 });
                 endMarker.ment = "도착지: " + me.attMappingInfo.end.purifyData.name;
-                endMarker.imgUrl = './assets/images/ic_b_end.png';
+                endMarker.imgUrl = './assets/images/turnByturn/img_stop.png';
+                endMarker.turnByturnImg = './assets/images/turnByturn/img_stop.png';
                 endMarker.idx = idx;
+                endMarker.turnByturnImgVisible = 'none';
                 endMarker.onEvent('mouseover',function() {
                     endMarker.tooltip = me.addMiniTooltip(endMarker, "도착지: " + me.attMappingInfo.end.purifyData.name);
                 });
@@ -292,7 +309,7 @@ $class('tool.RouteSearch').define({
                     me.removeTooltip(endMarker.tooltip);
                 });
                 endMarker.onEvent('click', function(e) {
-                    me.infoWindowShow(endMarker);
+                    me.infoWindowShow(endMarker, false, false, true);
                 });
                 me.markerArr.push(endMarker);
             }else{
@@ -308,10 +325,12 @@ $class('tool.RouteSearch').define({
                 });
                 marker.idx = idx;
                 marker.rg = rgEle;
-                marker.ment = me.ment(marker.rg);
+                var mAndI = me.mentAndImage(rgEle);
+                marker.ment = mAndI.ment;
+                marker.turnByturnImg = mAndI.turnByturnImg;
                 marker.imgUrl = './assets/images/marker_num_'+idx+'.png';
+                marker.turnByturnImgVisible = 'block';
                 marker.idx = idx;
-
                 marker.onEvent('mouseover',function() {
                     var newIcon = {
                         url: './assets/images/marker_num_over_'+this.idx+'.png',
@@ -331,7 +350,7 @@ $class('tool.RouteSearch').define({
                     me.removeTooltip(marker.tooltip);
                 });
                 marker.onEvent('click', function(e) {
-                    me.infoWindowShow(marker);
+                    me.infoWindowShow(marker, false, false, true);
                 });
                 me.markerArr.push(marker);
             }
@@ -347,7 +366,7 @@ $class('tool.RouteSearch').define({
             type: "post",
             contentType: "application/json",
             dataType: "json",
-            headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
+            //headers:{"Authorization":_app.apiKey, "Accept":"application/json", "Accept-Language":"ko-KR"},
 			data: JSON.stringify({"terms":me.routeByPoiInput.val(), "route":route}),
 			success: function(result) {
                 me.routeByPoiResult = result;
@@ -399,17 +418,26 @@ $class('tool.RouteSearch').define({
         var DATA = me.searchResult.DATA;
         var bound = new olleh.maps.Bounds(new olleh.maps.UTMK(DATA.mbr_minx, DATA.mbr_miny), new olleh.maps.UTMK(DATA.mbr_maxx, DATA.mbr_maxy));
         _map.fitBounds(bound);
+        if(me.boundTimer){
+            clearInterval(me.boundTimer);
+        }
 
         if(_app.leftResultMgr.leftGap()>0){
-            me.timer = setInterval(function() {
-                clearInterval(me.timer);
-                var xgap = (_map.layerMgr.getCoordFromLayerPx(new olleh.maps.Point(394, 0)).x - _map.layerMgr.getCoordFromLayerPx(new olleh.maps.Point(0, 0)).x)/2;
-                var bound = new olleh.maps.Bounds(new olleh.maps.UTMK(DATA.mbr_minx-xgap, DATA.mbr_miny), new olleh.maps.UTMK(DATA.mbr_maxx+xgap, DATA.mbr_maxy));
-                _map.fitBounds(bound);
-                var currCenter = _map.getCenter();
-                currCenter.x = currCenter.x - xgap;
-                _map.setCenter(currCenter);
+            me.boundTimer = setInterval(function() {
+                clearInterval(me.boundTimer);
+                try{
+                    var xgap = (_map.layerMgr.getCoordFromLayerPx(new olleh.maps.Point(394, 0)).x - _map.layerMgr.getCoordFromLayerPx(new olleh.maps.Point(0, 0)).x)/2;
+                    var bound = new olleh.maps.Bounds(new olleh.maps.UTMK(DATA.mbr_minx-xgap, DATA.mbr_miny), new olleh.maps.UTMK(DATA.mbr_maxx+xgap, DATA.mbr_maxy));
+                    _map.fitBounds(bound);
+                    var currCenter = _map.getCenter();
+                    currCenter.x = currCenter.x - xgap;
+                    _map.setCenter(currCenter);
+                }catch(e){
+                    clearInterval(me.boundTimer);
+                }
             },500)
+        }else{
+            clearInterval(me.boundTimer);
         }
     },
 
@@ -504,10 +532,23 @@ $class('tool.RouteSearch').define({
 		tooltip.setMap(null);
 		tooltip = null;
 		return tooltip;
-	},
+    },
+    
+    listElementFocus: function(marker){
+        var me = this;
+        if(marker){
+            for(var i=0; i<me.routeElement_dom.length; i++){
+                if(me.routeElement_dom[i].id==marker.idx){
+                    me.routeList_dom.scrollTop(60 + 40*(i-1));
+                    return;
+                }
+            }
+        }
+    },
 
-    ment: function(rgd){
+    mentAndImage: function(rgd){
         var ment = '';
+        var turnByturnImg ='icon_road_' + rgd.type + '_' + rgd.tspdinfo + '.png';
 
         if((rgd.dir_name).length > 0){
             ment += (rgd.dir_name + ' 방면 ');
@@ -581,7 +622,7 @@ $class('tool.RouteSearch').define({
             }
             ment += (dist + 'm 이동');
         }
-        return ment;
+        return {"ment":ment, "turnByturnImg":turnByturnImg};
     },
 
     mapClear: function(){
@@ -619,18 +660,12 @@ $class('tool.RouteSearch').define({
     getLatLngPath: function() {
         var me  = this;
         var LatLngPath = [];
-        var links = me.searchResult.DATA.link;
-        for (var i = 0; i < links.length; i++) {
-            var link = links[i];
-            for (var j = 0; j < link.vertex_cnt; j++) {
-                var utmk = new olleh.maps.UTMK(link.vertex[j]);
-                var latlng = new olleh.maps.LatLng.valueOf(utmk);
-                LatLngPath.push({
-                    lat: latlng.y,
-                    lng: latlng.x
-                });
-            }
-        }
+        me.searchResult.DATA.link.forEach((link, i) => {
+            link.vertex.forEach((vertex, j) => {
+                var latlng = new olleh.maps.LatLng.valueOf(new olleh.maps.UTMK(vertex));
+                LatLngPath.push({lat: latlng.y, lng: latlng.x});
+            });
+        });
         return LatLngPath;
     },
 

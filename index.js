@@ -1,10 +1,7 @@
 if(typeof(window._app) == "undefined") window._app = {};
 if(typeof(window._map) == "undefined") window._map = {};
 
-_app.geomasterUrl = "https://gis.kt.com";
-_app.apiKey = "Bearer 9886c37a33aca43c88541d669306b8fc431a710760ba0982c524eb30223ecbf657f880a9";
-_app.ollehApiKey = "9886c37a33aca43c88541d669306b8fc431a710760ba0982c524eb30223ecbf657f880a9";
-
+_app.geomasterUrl = "geomaster";
 _app.guid = function(){
     function s4() {
         return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
@@ -28,6 +25,8 @@ window.onload = function(){
             _app.themeLayer = new tool.ThemeLayer();
             _app.contextMenu = new tool.ContextMenu('ollehMap');
             _app.leftResultMgr = new left.LeftResultMgr();
+
+            
         }
     );
 };
