@@ -12,6 +12,7 @@ $class('tool.RouteSearch').define({
     routeByPoiInput: $('#routeByPoiInput'),
     attSearchResult_dom: $("#attSearchResult"), //검색결과영역
     routeIngMsg: $(".routeIngMsg"),
+    realTimeStr: $("#routeWrap #realTimeStr"),
 
     tmpl:{},
     attMappingInfo:null,
@@ -152,13 +153,18 @@ $class('tool.RouteSearch').define({
 
     makeSendParam: function(){
         var me = this;
-        var priority = 6;
+        var priority = 3;
         for(var i=0; i<me.all_a_dom.length; i++){
             var objDom = $(me.all_a_dom[i])
             if(objDom.attr('class')=='on'){
                 priority = objDom.attr('val');
                 break;
             }
+        }
+        if(priority==6){
+            me.realTimeStr.hide()
+        }else{
+            me.realTimeStr.show()
         }
         var param = "&sx=" + me.attMappingInfo.start.getPosition().x + "&sy=" + me.attMappingInfo.start.getPosition().y +
                     "&ex=" + me.attMappingInfo.end.getPosition().x + "&ey=" + me.attMappingInfo.end.getPosition().y +

@@ -41,6 +41,11 @@ module.exports = {
                     'Accept-Language': 'ko-KR'
                 },
                 secure: false
+            },
+
+            '/naverMap': {
+                target: 'https://map.naver.com',
+                pathRewrite: {'^/naverMap' : ''},
             }
         }
     }

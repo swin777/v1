@@ -14,6 +14,7 @@
     <script type="text/javascript" src="https://api.ktgis.com:10083/v3/olleh/mapAPI.js?key=ODEwMEQ3ODk6VDc3RkM5N0I2OEM2RDA="></script>
     <!-- <script type="text/javascript" src="https://gis.kt.com/maps/v3.0/msdk.js?key=8b333dfa89354771160af804485f7e9f027431feaa8b42d465e6dae3d2d1e2910306f94f"></script> -->
     <script type="text/javascript" src="./dist/bundle.js"></script>
+    <script src="//rum-static.pingdom.net/pa-5bf4ca73cea07b001600050e.js" async></script> 
 </head>
 <body>
     <div id="wrap">
@@ -254,14 +255,14 @@
 
                     <div class="wrap_search" id="routeWrap" style="display: none">
                         <div class="txt_nav ac">
-                            <a href="javascript:void(0)" class="on" val="6">실시간 빠른길</a>
-                            <a href="javascript:void(0)" val="3">최적</a>
+                            <a href="javascript:void(0)" class="on" val="3">최적</a>
                             <a href="javascript:void(0)" val="0">최단</a>
                             <a href="javascript:void(0)" val="2">무료</a>
                             <a href="javascript:void(0)" val="1">고속도로</a>
+                            <a href="javascript:void(0)" val="6">실시간 OFF</a>
                         </div>
                         <div class="box_sky">
-                            <strong>실시간 교통 정보 데이터를 반영한 결과입니다.</strong>
+                            <strong id="realTimeStr">실시간 교통 정보 데이터를 반영한 결과입니다.</strong>
                             <div class="body_sky">
                                 <ul>
                                     <li><span>총거리     </span><strong id="total_dist"></strong></li>
