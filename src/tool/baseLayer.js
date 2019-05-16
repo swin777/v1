@@ -40,7 +40,7 @@ $class('tool.BaseLayer').define({
         me.cadastralLayer = new olleh.maps.layer.OllehTileLayer({
             name: 'OllehCadastral',
             label: '지적편집도',
-            tileURLTmpl: 'http://map.ktgis.com/CadastralMap/cadastral4.04.1_0527/layers/_alllayers/l#{z}/r#{y}/c#{x}.png',
+            tileURLTmpl: 'http://map.ktgis.com/CadastralMap/cadastral8.09.1_0928/layers/_alllayers/l#{z}/r#{y}/c#{x}.png',
             minZoom: 3,
             maxZoom: 13,
             autoActivate: true

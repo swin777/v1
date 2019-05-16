@@ -7,18 +7,24 @@ $class('tool.RoadSearch').define({
     geo_box02_dom: $('#geo_box02'), //검색입력영역
     startKeyword_dom: $('#startKeyword'),
     endKeyword_dom: $('#endKeyword'),
-    wp1Keyword_dom: $('#wp1Keyword'),
-    wp2Keyword_dom: $('#wp2Keyword'),
-    wp3Keyword_dom: $('#wp3Keyword'),
+
+    wpKeyword_doms: [],
     wayPointArea_dom: $('.wayPointArea'),
     wrap_inpAdd_dom: $('.wrap_inpAdd'),
 
+    addressResult_dom:$("#addressResult2"),
+    addressList_dom:$('#addressList2'),
     attSearchResult_dom: $("#attSearchResult"), //검색결과영역
     attResult_dom:$("#attResult"),
     attList_dom:$('#attList'),
     attPage_dom:$('#attPage'),
     attElement_dom:null,
 
+    addressCnt_dom: $('#addressCnt2'),
+    onlyplaceCnt_dom: $('#onlyplaceCnt2'),
+    addressElement_dom:null,
+    addressTitle_dom:$('#addressTitle'),
+    adressCnt_dom: $('#addressCnt'),
     attKeywordStr_dom: $('#attKeywordStr'),
     attCnt_dom: $('#attCnt'),
     attOrder1_dom: $('#attOrder1'),
@@ -39,25 +45,31 @@ $class('tool.RoadSearch').define({
     attention: null, //start, wp1, wp2, wp3, end
     attMappingInfo: {start:null, wp1:null, wp2:null, wp3:null, end:null},
 
+    addressHeight: 0,
+    addressPolyGons: [],
+
     RoadSearch: function(){
         var me = this;
         me.attSearchResult_dom.css('top', '80px');
         me.wayPointArea_dom.sortable();
         me.wayPointArea_dom.disableSelection();
 
-        require(["raw-loader!./html/placeResult.html", "raw-loader!./html/placeInfoWindow.html", 
+        me.wpDomInit();
+
+        require(["raw-loader!./html/placeResult.html", "raw-loader!./html/addressResult.html", "raw-loader!./html/placeInfoWindow.html", 
                 "raw-loader!./html/placeClusterInfoWindow.html", "raw-loader!./html/routeInfoWindow.html",
                 '../util/autoComplate', '../util/pageNavi', './routeSearch'],
-            function(placeResultHtml, placeInfoWindow, placeClusterInfoWindow, routeInfoWindow, autoComplate, pageNavi, routeSearch) {
+            function(placeResultHtml, addressResultHtml, placeInfoWindow, placeClusterInfoWindow, routeInfoWindow, autoComplate, pageNavi, routeSearch) {
                 me.tmpl.placeResultHtml = placeResultHtml;
+                me.tmpl.addressResultHtml = addressResultHtml;
                 me.tmpl.placeInfoWindow = placeInfoWindow;
                 me.tmpl.placeClusterInfoWindow = placeClusterInfoWindow;
                 me.tmpl.routeInfoWindow = routeInfoWindow;
                 me.autoComplateArr.push(new util.AutoComplate(me.startKeyword_dom, {fun:me.autoCallBack, thisArg:me, etcArg:{attention:'start'}}));
                 me.autoComplateArr.push(new util.AutoComplate(me.endKeyword_dom, {fun:me.autoCallBack, thisArg:me, etcArg:{attention:'end'}}));
-                me.autoComplateArr.push(new util.AutoComplate(me.wp1Keyword_dom, {fun:me.autoCallBack, thisArg:me, etcArg:{attention:'wp1'}}));
-                me.autoComplateArr.push(new util.AutoComplate(me.wp2Keyword_dom, {fun:me.autoCallBack, thisArg:me, etcArg:{attention:'wp2'}}));
-                me.autoComplateArr.push(new util.AutoComplate(me.wp3Keyword_dom, {fun:me.autoCallBack, thisArg:me, etcArg:{attention:'wp3'}}));
+                me.wpKeyword_doms.forEach((ele) => {
+                    me.autoComplateArr.push(new util.AutoComplate(me[ele], {fun:me.autoCallBack, thisArg:me, etcArg:{attention:ele.split('Keyword_dom')[0]}}));
+                });
                 me.pageNavi = new util.PageNavi(me.attPage_dom, {fun:me.searchCall, thisArg:me});
                 me.routeSearch = new tool.RouteSearch(me.attList_dom, me.routeList_dom, me.attWrap_dom, me.routeWrap_dom);
                 _app.routeSearch = me.routeSearch;
@@ -93,6 +105,21 @@ $class('tool.RoadSearch').define({
         me.domEvent();
     },
 
+    wpDomInit: function(){
+        var me = this;
+        for(var i=0; i<_app.wpTotalCnt; i++){
+            me.wpKeyword_doms[i] = 'wp'+(i+1)+'Keyword_dom'
+            me['wp'+(i+1)+'Keyword_dom'] = $('#wp'+(i+1)+'Keyword');
+        }
+    },
+
+    wpDomClear: function(){
+        var me = this;
+        me.wpKeyword_doms.forEach((ele) => {
+            me[ele].val('');
+        });
+    },
+
     domEvent: function(){
         var me = this;
         $(".btn_Gsearch").click(function () {
@@ -110,7 +137,7 @@ $class('tool.RoadSearch').define({
 
         $("#geo_box02 .btn_search").click(function() {
             me.attention = $(this).attr('class').split(" ").reverse()[0];
-            me.keyWord = me[me.attention+"Keyword_dom"].val();
+            me.keyWord = me[me.attention+'Keyword_dom'].val();
             me.searchCall(true);
         });
 
@@ -118,9 +145,9 @@ $class('tool.RoadSearch').define({
             var start = me.attMappingInfo['start'];
             var end = me.attMappingInfo['end'];
             me.attMappingInfo['start'] = end;
-            me['startKeyword_dom'].val(end.purifyData.name);
+            me['startKeyword_dom'].val(end.purifyData.name + end.purifyData.branch );
             me.attMappingInfo['end'] = start;
-            me['endKeyword_dom'].val(start.purifyData.name);
+            me['endKeyword_dom'].val(start.purifyData.name + start.purifyData.branch);
             if(me.attMappingInfo['start'] && me.attMappingInfo['end']){
                 me.routeSearchCall();
             }
@@ -145,10 +172,14 @@ $class('tool.RoadSearch').define({
         });
 
         $("#roadClear").click(function(){
-            me[me.attention+"Keyword_dom"].val('');
+            me[me.attention+'Keyword_dom'].val('');
+            me.addressResult_dom.html('');
+            me.addressList_dom.scrollTop(0);
             me.attResult_dom.html('');
             me.attList_dom.scrollTop(0);
+            me.attList_dom.css('top', 141);
             me.attKeywordStr_dom.text('');
+            me.addressCnt_dom.text('');
             me.attCnt_dom.text('');
             me.pageNavi.clear();
             me.clusterer.clear();
@@ -177,14 +208,14 @@ $class('tool.RoadSearch').define({
             if(member!=me.attention && me.attMappingInfo[member]){
                 if(marker.getPosition().x == me.attMappingInfo[member].getPosition().x && marker.getPosition().y == me.attMappingInfo[member].getPosition().y){
                     me.attMappingInfo[me.attention] = null;
-                    me[me.attention+"Keyword_dom"].val('');
+                    me[me.attention+'Keyword_dom'].val('');
                     alert(me.getKeywordLabel(me.attention) + " 과 " + me.getKeywordLabel(member) + " 동일합니다.");
                     return;
                 }
             }
         }
         me.attMappingInfo[me.attention] = marker;
-        me[me.attention+'Keyword_dom'].val(marker.purifyData.name);
+        me[me.attention+'Keyword_dom'].val(marker.purifyData.name + marker.purifyData.branch );
     },
 
     autoCallBack: function(keyWord, etcArg){
@@ -204,12 +235,12 @@ $class('tool.RoadSearch').define({
         me.pageNavi.clear();
         me.startKeyword_dom.val('');
         me.endKeyword_dom.val('');
-        me.wp1Keyword_dom.val('');
-        me.wp2Keyword_dom.val('');
-        me.wp3Keyword_dom.val('');
+        me.wpDomClear();
         me.attMappingInfo = {start:null, wp1:null, wp2:null, wp3:null, end:null};
         me.attResult_dom.html('');
         me.attList_dom.scrollTop(0);
+        me.attList_dom.css('top', 141);
+        me.addressList_dom.scrollTop(0);
         me.attKeywordStr_dom.text('');
         me.attCnt_dom.text('');
         me.wpRemoveAll();
@@ -218,7 +249,7 @@ $class('tool.RoadSearch').define({
 
     wpAdd: function(){
         var me = this;
-        if(me.wpCnt<3){
+        if(me.wpCnt<_app.wpTotalCnt){
             for(var i=0; i<me.wrap_inpAdd_dom.length; i++){
                 var dom = $(me.wrap_inpAdd_dom[i]);
                 if(dom.css('display')=='none'){
@@ -229,7 +260,7 @@ $class('tool.RoadSearch').define({
             me.wpCnt++;
             me.attSearchResultHeight();
         }else{
-            alert("경유지는 3개까지 입니다.");
+            alert("경유지는 "+_app.wpTotalCnt+"개까지 입니다.");
         }
     },
 
@@ -297,9 +328,10 @@ $class('tool.RoadSearch').define({
                 me.searchResult = result;
                 if(me.searchResult.pois){
                     me.attDisplay();
+                    me.addressDisplay();
                     me.mapDisplay();
+                    me.addressMapDisplay();
                     me.attKeywordStr_dom.text(me.keyWord);
-                    me.attCnt_dom.text(new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois) + "건");
                 }
             },
             error: function(err){
@@ -377,6 +409,40 @@ $class('tool.RoadSearch').define({
         }
     },
 
+    addressDisplay: function(){
+        var me = this;
+        me.addressResult_dom.html('');
+        me.addressList_dom.scrollTop(0);
+        me.addressHeight = 0;
+        var cnt = 0;
+        me.searchResult.residentialAddress.forEach((element, idx) => {
+            if(element.parcelAddress.length>0){
+                var obj = element.parcelAddress[0];
+                obj.id = "address_" + idx;
+                if(element.roadAddress.length>0){
+                    obj['road_fullAddress'] = element.roadAddress[0].fullAddress;
+                }else{
+                    obj['road_fullAddress'] ='';
+                }
+                me.addressResult_dom.append(olleh.maps.util.applyTemplate( me.tmpl.addressResultHtml, obj));
+                me.addressHeight += 47;
+                cnt++;
+            }
+        });
+        me.attList_dom.css('top', 141 + me.addressHeight);
+        me.addressCnt_dom.html("&nbsp;" + new Intl.NumberFormat("en-US").format(cnt) + "건"); 
+        me.onlyplaceCnt_dom.html("&nbsp;" + new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois) + "건"); 
+        me.attCnt_dom.text(new Intl.NumberFormat("en-US").format(me.searchResult.numberOfPois + cnt) + "건");
+
+        me.addressElement_dom = $('#addressList2 .addressElement');
+        me.addressElement_dom.click(function(){
+            me.addressElement_dom.attr('class', 'addressElement');
+            $(this).attr('class', 'addressElement on');
+            var polygon = me.addressPolyGons[parseInt(this.id.split("address_")[1])];
+            _map.fitBounds(polygon.getBounds());
+        })
+    },
+
     listElementFocus: function(marker){
         var me = this;
         if(me.attElement_dom){
@@ -429,6 +495,55 @@ $class('tool.RoadSearch').define({
             _map.fitBounds(bound);
         }
         me.clusterer.setMap(_map);
+    },
+
+    addressMapDisplay: function(){
+        var me = this;
+        var bound = null;
+        me.addressPolyGons.forEach((polygon, idx) => {
+            polygon.setMap(null);
+        });
+        me.addressPolyGons = [];
+        me.searchResult.residentialAddress.forEach((element, idx) => {
+            element.parcelAddress.forEach((placeElement, idx2) => {
+                if(placeElement.geographicInformation && placeElement.geographicInformation.shape){
+                    var object = placeElement.geographicInformation.shape;
+                    for(var k=0; k< object.coordinates.length; k++){
+                        var _paths = [];
+                        for(var j=0; j< (object.coordinates[k])[0].length ; j++){
+                            var _point = (object.coordinates[k])[0][j];
+                            _paths.push(new olleh.maps.LatLng(_point[1], _point[0]));
+                            var utmk = olleh.maps.UTMK.valueOf(new olleh.maps.LatLng(_point[1], _point[0]));
+                            if(!bound){
+                                bound = new olleh.maps.Bounds(utmk, utmk);
+                            }else{
+                                bound = bound.union(utmk);
+                            }
+                        }
+                        var polygon = new olleh.maps.vector.Polygon({
+                            map: _map,
+                            paths: new olleh.maps.Path(_paths),
+                            strokeWeight:3,
+                            strokeColor:'blue',
+                            fillColor:'blue',
+                            fillOpacity:0.3
+                        });
+                        polygon['purifyData'] = {}
+                        polygon['purifyData']['name'] = placeElement.fullAddress;
+                        polygon['purifyData']['branch'] = '';
+                        polygon['getPosition'] = polygon.getCenter;
+                        me.addressPolyGons.push(polygon);
+
+                        if(idx2==0){
+                            me.attMapping(polygon); //첫번째것을 기본으로 세팅함.
+                        }
+                    }
+                }
+            });
+        });
+        if(bound){
+            _map.fitBounds(bound);
+        }
     },
 
     infoWindowShow: function(marker, purifyData, maxZoomIn, centerMove, listFocus, tmpl){
@@ -678,15 +793,15 @@ $class('tool.RoadSearch').define({
             delete me.infoWindow;
         }
         if(me.startKeyword_dom.val()=='' && me.attMappingInfo['start']){
-            me.startKeyword_dom.val(me.attMappingInfo['start'].purifyData.name);
+            me.startKeyword_dom.val(me.attMappingInfo['start'].purifyData.name + me.attMappingInfo['start'].purifyData.branch);
         }
         if(me.endKeyword_dom.val()=='' && me.attMappingInfo['end']){
-            me.endKeyword_dom.val(me.attMappingInfo['end'].purifyData.name);
+            me.endKeyword_dom.val(me.attMappingInfo['end'].purifyData.name+ me.attMappingInfo['start'].purifyData.branch);
         }
-        for(var i=1; i<4; i++){
+        for(var i=1; i<(_app.wpTotalCnt+1); i++){
             if(me.attMappingInfo['wp'+i]){
                 if(me['wp'+i+'Keyword_dom'].val()=='' && me['wp'+i+'Keyword_dom']){
-                    me['wp'+i+'Keyword_dom'].val(me.attMappingInfo['wp'+i].purifyData.name);
+                    me['wp'+i+'Keyword_dom'].val(me.attMappingInfo['wp'+i].purifyData.name + me.attMappingInfo['start'].purifyData.branch);
                 }
             }
         }

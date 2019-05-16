@@ -2,6 +2,7 @@ if(typeof(window._app) == "undefined") window._app = {};
 if(typeof(window._map) == "undefined") window._map = {};
 
 _app.geomasterUrl = "geomaster";
+_app.wpTotalCnt = 12;
 _app.guid = function(){
     function s4() {
         return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
